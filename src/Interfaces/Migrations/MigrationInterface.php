@@ -173,8 +173,9 @@ interface MigrationInterface
     /**
      * Drop foreign key.
      * 
+     * @param string $table
      * @param string $constraint
      * @return void
      */
-    public function dropForeignKey($constraint);
+    public function dropForeignKey($table, $constraint);
 }

@@ -183,7 +183,7 @@ class MigrationTest extends TestCase
         $this->assertTrue($this->checkTableExists('my_table'));
         $this->assertEquals(2, count($this->getTableFields('my_table')));
 
-        $this->dropTestTable();
+        $this->dropTestTable('my_table');
     }
     
     /**
@@ -366,6 +366,17 @@ class MigrationTest extends TestCase
     }
 
     /**
+     * Test check column does exists in table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCheckColumnDoesExistsInTable()
+    {
+        $this->assertTrue($this->migration->checkColumn('test', 'email'));
+    }
+    
+    /**
      * Test drop column from table.
      *
      * @runInSeparateProcess
@@ -378,13 +389,123 @@ class MigrationTest extends TestCase
     }
 
     /**
-     * Test check column does exists in table.
+     * Test add foreign key to table.
      *
      * @runInSeparateProcess
      * @return void
      */
-    public function testCheckColumnDoesExistsInTable()
+    public function testAddForeignKeyToTable()
     {
-        $this->assertTrue($this->migration->checkColumn('test', 'email'));
+        $this->createTestTable('test2');
+        
+        $this->migration->addForeignKey(
+            'test_foreign_key',
+            'test',
+            'id',
+            'test2',
+            'id',
+            [
+                'on_delete' => 'NO ACTION',
+                'on_update' => 'NO ACTION',
+            ]
+        );
+
+        $foreignKeyExists = $this->connectToDatabase()->prepare("
+            SELECT
+                CONSTRAINT_NAME
+            FROM 
+                INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+            WHERE 
+                TABLE_NAME = 'test'
+            AND
+                CONSTRAINT_NAME = 'test_foreign_key';
+        ");
+
+        $foreignKeyExists->execute();
+        $this->assertNotEmpty($foreignKeyExists->fetch());
+
+        $this->connectToDatabase()->prepare("
+            SET FOREIGN_KEY_CHECKS=0;
+            DROP TABLE test2;
+            SET FOREIGN_KEY_CHECKS=1;
+        ");
+    }
+    
+    /**
+     * Test check foreign key does exists in table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCheckForeignKeyDoesExistsInTable()
+    {
+        $this->createTestTable('test2');
+        
+        $createForeignKey = $this->connectToDatabase()->prepare("
+            ALTER TABLE test ADD CONSTRAINT test_foreign_key
+            FOREIGN KEY (id) REFERENCES test2(id)
+        ");
+
+        $createForeignKey->execute();
+
+        $foreignKeyExists = $this->connectToDatabase()->prepare("
+            SELECT
+                CONSTRAINT_NAME
+            FROM 
+                INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+            WHERE 
+                TABLE_NAME = 'test'
+            AND
+                CONSTRAINT_NAME = 'test_foreign_key';
+        ");
+
+        $foreignKeyExists->execute();
+        $this->assertNotEmpty($foreignKeyExists->fetch());
+
+        $this->connectToDatabase()->prepare("
+            SET FOREIGN_KEY_CHECKS=0;
+            DROP TABLE test2;
+            SET FOREIGN_KEY_CHECKS=1;
+        ");
+    }
+
+    /**
+     * Test drop foreign key from table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testDropForeignKeyFromTable()
+    {
+        $this->createTestTable('test2');
+        
+        $createForeignKey = $this->connectToDatabase()->prepare("
+            ALTER TABLE test ADD CONSTRAINT test_foreign_key
+            FOREIGN KEY (id) REFERENCES test2(id)
+        ");
+
+        $createForeignKey->execute();
+
+        $this->migration->dropForeignKey('test', 'test_foreign_key');
+
+        $foreignKeyExists = $this->connectToDatabase()->prepare("
+            SELECT
+                CONSTRAINT_NAME
+            FROM 
+                INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+            WHERE 
+                TABLE_NAME = 'test'
+            AND
+                CONSTRAINT_NAME = 'test_foreign_key';
+        ");
+
+        $foreignKeyExists->execute();
+        $this->assertEmpty($foreignKeyExists->fetch());
+
+        $this->connectToDatabase()->prepare("
+            SET FOREIGN_KEY_CHECKS=0;
+            DROP TABLE test2;
+            SET FOREIGN_KEY_CHECKS=1;
+        ");
     }
 }

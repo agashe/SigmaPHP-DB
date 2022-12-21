@@ -357,9 +357,9 @@ class Migration implements MigrationInterface
      */
     final public function renameColumn($table, $currentName, $newName)
     {
-        $this->execute(
-            "ALTER TABLE $table RENAME COLUMN $currentName TO $newName;"
-        );
+        $this->execute("
+            ALTER TABLE $table RENAME COLUMN $currentName TO $newName;
+        ");
     }
 
     /**
@@ -448,17 +448,32 @@ class Migration implements MigrationInterface
      */
     final public function checkForeignKey($table, $constraint)
     {
+        $foreignKeyExists = $this->connectToDatabase()->prepare("
+            SELECT
+                CONSTRAINT_NAME
+            FROM 
+                INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
+            WHERE 
+                TABLE_NAME = '{$table}'
+            AND
+                CONSTRAINT_NAME = '{$constraint}';
+        ");
 
+        $foreignKeyExists->execute();
+        return ($foreignKeyExists->fetch() != false);
     }
 
     /**
      * Drop foreign key.
      * 
+     * @param string $table
      * @param string $constraint
      * @return void
      */
-    final public function dropForeignKey($constraint)
+    final public function dropForeignKey($table, $constraint)
     {
-
+        $this->execute("
+            ALTER TABLE $table DROP FOREIGN KEY $constraint;
+        ");
     }
 }
