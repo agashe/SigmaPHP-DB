@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<phpunit>
+    <php>
+        <var name="DB_HOST" value="host" />
+        <var name="DB_USER" value="user" />
+        <var name="DB_PASS" value="pass" />
+        <var name="DB_NAME" value="test" />
+    </php>
+</phpunit>
