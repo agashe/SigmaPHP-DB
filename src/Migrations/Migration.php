@@ -214,7 +214,7 @@ class Migration implements MigrationInterface
      * @param array $options
      * @return void
      */
-    public function updateTable($name, $options)
+    final public function updateTable($name, $options)
     {
         // start update table statement
         $updateTableStatement = "ALTER TABLE $name";
@@ -252,7 +252,7 @@ class Migration implements MigrationInterface
      * @param string $newName
      * @return void
      */
-    public function renameTable($currentName, $newName)
+    final public function renameTable($currentName, $newName)
     {
         $this->execute("
             ALTER TABLE {$currentName} RENAME {$newName};
@@ -308,7 +308,7 @@ class Migration implements MigrationInterface
      * @param string $name
      * @return void
      */
-    public function dropTable($name)
+    final public function dropTable($name)
     {
         $this->execute("DROP TABLE {$name};");
     }
@@ -321,7 +321,7 @@ class Migration implements MigrationInterface
      * @param array $properties
      * @return void
      */
-    public function addColumn($table, $name, $properties)
+    final public function addColumn($table, $name, $properties)
     {
         $field = $this->convertFieldToSql([
             'name' => $name,
@@ -338,7 +338,7 @@ class Migration implements MigrationInterface
      * @param array $properties
      * @return void
      */
-    public function updateColumn($table, $name, $properties)
+    final public function updateColumn($table, $name, $properties)
     {
         $field = $this->convertFieldToSql([
             'name' => $name,
@@ -355,11 +355,37 @@ class Migration implements MigrationInterface
      * @param string $newName
      * @return void
      */
-    public function renameColumn($table, $currentName, $newName)
+    final public function renameColumn($table, $currentName, $newName)
     {
         $this->execute(
             "ALTER TABLE $table RENAME COLUMN $currentName TO $newName;"
         );
+    }
+
+    /**
+     * Check if column exists.
+     *
+     * @param string $table
+     * @param string $name
+     * @return bool
+     */
+    final public function checkColumn($table, $name)
+    {
+        $tableExists = $this->connectToDatabase()->prepare("
+            SELECT
+                COLUMN_NAME
+            FROM 
+                INFORMATION_SCHEMA.COLUMNS
+            WHERE 
+                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
+            AND
+                TABLE_NAME = '{$table}'
+            AND
+                COLUMN_NAME = '{$name}';
+        ");
+
+        $tableExists->execute();
+        return ($tableExists->fetch() != false);
     }
 
     /**
@@ -369,7 +395,7 @@ class Migration implements MigrationInterface
      * @param string $name
      * @return void
      */
-    public function dropColumn($table, $name)
+    final public function dropColumn($table, $name)
     {
         $this->execute("ALTER TABLE $table DROP COLUMN $name;");
     }
@@ -385,7 +411,7 @@ class Migration implements MigrationInterface
      * @param array $options
      * @return void
      */
-    public function addForeignKey(
+    final public function addForeignKey(
         $constraint,
         $parentTable,
         $localIds,
@@ -414,12 +440,24 @@ class Migration implements MigrationInterface
     }
 
     /**
+     * Check if foreign key exists.
+     * 
+     * @param string $table
+     * @param string $constraint
+     * @return void
+     */
+    final public function checkForeignKey($table, $constraint)
+    {
+
+    }
+
+    /**
      * Drop foreign key.
      * 
      * @param string $constraint
      * @return void
      */
-    public function dropForeignKey($constraint)
+    final public function dropForeignKey($constraint)
     {
 
     }

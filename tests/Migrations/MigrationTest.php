@@ -34,7 +34,21 @@ class MigrationTest extends TestCase
             'pass' => $GLOBALS['DB_PASS']
         ];
 
+        // create test table
+        $this->createTestTable();
+        
+        // create new migration instance
         $this->migration = new Migration($this->dbConfigs);
+    }
+    
+    /**
+     * MigrationTest TearDown
+     *
+     * @return void
+     */
+    public function tearDown(): void
+    {
+        $this->dropTestTable();
     }
     
     /**
@@ -115,7 +129,7 @@ class MigrationTest extends TestCase
      * @param string $table
      * @return array
      */
-    protected function getTableFields($table)
+    private function getTableFields($table)
     {
         $tableFields = $this->connectToDatabase()->prepare("
             SELECT
@@ -142,8 +156,6 @@ class MigrationTest extends TestCase
      */
     public function testExecuteSqlStatements()
     {
-        $this->createTestTable();
-
         $this->migration->execute('DROP TABLE IF EXISTS test');
 
         $this->assertFalse($this->checkTableExists('test'));
@@ -158,7 +170,7 @@ class MigrationTest extends TestCase
     public function testCreateTable()
     {
         $this->migration->createTable(
-            'test',
+            'my_table',
             [
                 ['name' => 'id', 'type' => 'bigint', 'primary' => true],
                 ['name' => 'title', 'type' => 'varchar', 'size' => 25],
@@ -168,8 +180,8 @@ class MigrationTest extends TestCase
             ]
         );
         
-        $this->assertTrue($this->checkTableExists('test'));
-        $this->assertEquals(2, count($this->getTableFields('test')));
+        $this->assertTrue($this->checkTableExists('my_table'));
+        $this->assertEquals(2, count($this->getTableFields('my_table')));
 
         $this->dropTestTable();
     }
@@ -182,8 +194,6 @@ class MigrationTest extends TestCase
      */
     public function testUpdateTable()
     {
-        $this->createTestTable();
-
         $this->migration->updateTable(
             'test',
             [
@@ -207,8 +217,6 @@ class MigrationTest extends TestCase
 
         $this->assertEquals('hello world', 
             $tableComment->fetch()['TABLE_COMMENT']);
-
-        $this->dropTestTable();
     }
 
     /**
@@ -219,12 +227,8 @@ class MigrationTest extends TestCase
      */
     public function testRenameTable()
     {
-        $this->createTestTable();
-
         $this->migration->renameTable('test', 'test_renamed');
-
         $this->assertTrue($this->checkTableExists('test_renamed'));
-
         $this->dropTestTable('test_renamed');
     }
     
@@ -236,12 +240,8 @@ class MigrationTest extends TestCase
      */
     public function testCheckTable()
     {
-        $this->createTestTable();
-
         $this->assertTrue($this->migration
             ->checkTable('test'));
-
-        $this->dropTestTable();
     }
 
     /**
@@ -252,8 +252,6 @@ class MigrationTest extends TestCase
      */
     public function testChangePrimaryKeyForTable()
     {
-        $this->createTestTable();
-
         $this->migration->changeTablePrimaryKey('test', 'id', 'name');
 
         // get table primary key
@@ -265,8 +263,6 @@ class MigrationTest extends TestCase
 
         $this->assertEquals('name', 
             $tablePrimaryKey->fetch()['Field']);
-
-        $this->dropTestTable();
     }
 
     /**
@@ -277,10 +273,7 @@ class MigrationTest extends TestCase
      */
     public function testDropTable()
     {
-        $this->createTestTable();
-
         $this->migration->dropTable('test');
-
         $this->assertFalse($this->checkTableExists('test_renamed'));
     }
 
@@ -316,8 +309,6 @@ class MigrationTest extends TestCase
      */
     public function testUpdateColumnInTable()
     {
-        $this->createTestTable();
-
         $this->migration->updateColumn(
             'test',
             'email',
@@ -340,10 +331,7 @@ class MigrationTest extends TestCase
         ");
 
         $fieldType->execute();
-
         $this->assertEquals('text', $fieldType->fetch()['DATA_TYPE']);
-
-        $this->dropTestTable();
     }
 
     /**
@@ -354,8 +342,6 @@ class MigrationTest extends TestCase
      */
     public function testRenameColumnInTable()
     {
-        $this->createTestTable();
-
         $this->migration->renameColumn(
             'test',
             'email',
@@ -376,10 +362,7 @@ class MigrationTest extends TestCase
         ");
 
         $fieldRenamed->execute();
-
         $this->assertNotEmpty($fieldRenamed->fetch());
-
-        $this->dropTestTable();
     }
 
     /**
@@ -390,12 +373,18 @@ class MigrationTest extends TestCase
      */
     public function testDropColumnFromTable()
     {
-        $this->createTestTable();
-
         $this->migration->dropColumn('test', 'email');
-
         $this->assertEquals(2, count($this->getTableFields('test')));
+    }
 
-        $this->dropTestTable();
+    /**
+     * Test check column does exists in table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCheckColumnDoesExistsInTable()
+    {
+        $this->assertTrue($this->migration->checkColumn('test', 'email'));
     }
 }

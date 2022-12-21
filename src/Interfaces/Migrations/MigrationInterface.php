@@ -124,6 +124,15 @@ interface MigrationInterface
     public function renameColumn($table, $currentName, $newName);
 
     /**
+     * Check if column exists.
+     *
+     * @param string $table
+     * @param string $name
+     * @return bool
+     */
+    public function checkColumn($table, $name);
+
+    /**
      * Drop column.
      * 
      * @param string $table
@@ -151,6 +160,15 @@ interface MigrationInterface
         $foreignIds,    
         $options
     );
+
+    /**
+     * Check if foreign key exists.
+     * 
+     * @param string $table
+     * @param string $constraint
+     * @return void
+     */
+    public function checkForeignKey($table, $constraint);
 
     /**
      * Drop foreign key.
