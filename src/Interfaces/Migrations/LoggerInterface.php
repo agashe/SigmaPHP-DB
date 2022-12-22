@@ -10,7 +10,8 @@ interface LoggerInterface
     /**
      * Log the latest migration status.
      * 
+     * @param $string $migration the migration file name
      * @return void
      */
-    public function log();
+    public function log($migration);
 }
