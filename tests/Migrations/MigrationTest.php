@@ -389,6 +389,72 @@ class MigrationTest extends TestCase
     }
 
     /**
+     * Test add index to table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testAddIndexToTable()
+    {
+        $this->migration->addIndex(
+            'test',
+            'test_index',
+            ['name', 'email'],
+            'normal',
+            [
+                'name' => 'desc'
+            ]
+        );
+
+        $indexWasCreated = $this->connectToDatabase()->prepare("
+            SHOW INDEX FROM test WHERE Key_name='test_index'
+        ");
+
+        $indexWasCreated->execute();
+        $this->assertNotEmpty($indexWasCreated->fetch());
+    }
+
+    /**
+     * Test check index does exists in table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCheckIndexDoesExistsInTable()
+    {
+        $createIndex = $this->connectToDatabase()->prepare("
+            CREATE INDEX test_index ON test (name);
+        ");
+
+        $createIndex->execute();
+        $this->assertTrue($this->migration->checkIndex('test', 'test_index'));
+    }
+
+    /**
+     * Test drop index from table.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testDropIndexFromTable()
+    {
+        $createIndex = $this->connectToDatabase()->prepare("
+            CREATE INDEX test_index ON test (name);
+        ");
+
+        $createIndex->execute();
+
+        $this->migration->dropIndex('test', 'test_index');
+
+        $indexWasDeleted = $this->connectToDatabase()->prepare("
+            SHOW INDEX FROM test WHERE Key_name='test_index'
+        ");
+
+        $indexWasDeleted->execute();
+        $this->assertEmpty($indexWasDeleted->fetch());
+    }
+
+    /**
      * Test add foreign key to table.
      *
      * @runInSeparateProcess

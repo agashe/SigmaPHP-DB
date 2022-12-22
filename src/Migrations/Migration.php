@@ -401,6 +401,79 @@ class Migration implements MigrationInterface
     }
 
     /**
+     * Add index.
+     * 
+     * @param string $table
+     * @param string $name
+     * @param array $columns
+     * @param string $type normal|unique|fulltext
+     * @param array $order
+     * @return void
+     */
+    final public function addIndex(
+        $table,
+        $name,
+        $columns,
+        $type = 'normal',
+        $order,
+    ) {
+        $type = ($type == 'normal') ? '' : strtoupper($type);
+
+        // prepare columns and set order if exists
+        $columnsFormatted = '';
+
+        if (isset($order) && !empty($order)) {
+            foreach ($columns as $column) {
+                if (array_key_exists($column, $order)) {
+                    $columnsFormatted .= $column . ' ' .
+                        strtoupper($order[$column]) . ',';
+                } else {
+                    $columnsFormatted .= $column . ',';
+                }
+            }
+
+            $columnsFormatted = rtrim($columnsFormatted, ',');
+        } else {
+            $columnsFormatted = implode(',', $columns);
+        }
+
+        $this->execute("
+            CREATE $type INDEX $name ON $table ($columnsFormatted);
+        ");
+    }
+    
+    /**
+     * Check if index exists.
+     * 
+     * @param string $table
+     * @param string $name
+     * @return void
+     */
+    final public function checkIndex($table, $name)
+    {
+        $indexExists = $this->connectToDatabase()->prepare("
+            SHOW INDEX FROM $table WHERE Key_name='$name';
+        ");
+
+        $indexExists->execute();
+        return ($indexExists->fetch() != false);
+    }
+
+    /**
+     * Drop index.
+     * 
+     * @param string $table
+     * @param string $name
+     * @return void
+     */
+    final public function dropIndex($table, $name)
+    {
+        $this->execute("
+            ALTER TABLE $table DROP INDEX $name;
+        ");
+    }
+
+    /**
      * Add foreign key.
      * 
      * @param string $constraint

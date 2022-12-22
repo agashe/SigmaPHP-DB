@@ -142,6 +142,42 @@ interface MigrationInterface
     public function dropColumn($table, $name);
 
     /**
+     * Add index.
+     * 
+     * @param string $table
+     * @param string $name
+     * @param array $columns
+     * @param string $type normal|unique|fulltext
+     * @param array $order
+     * @return void
+     */
+    public function addIndex(
+        $table,
+        $name,
+        $columns,
+        $type,
+        $order,
+    );
+
+    /**
+     * Check if index exists.
+     * 
+     * @param string $table
+     * @param string $name
+     * @return void
+     */
+    public function checkIndex($table, $name);
+
+    /**
+     * Drop index.
+     * 
+     * @param string $table
+     * @param string $name
+     * @return void
+     */
+    public function dropIndex($table, $name);
+
+    /**
      * Add foreign key.
      * 
      * @param string $constraint
