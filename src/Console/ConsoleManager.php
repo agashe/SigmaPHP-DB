@@ -10,6 +10,11 @@ use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
 class ConsoleManager implements ConsoleManagerInterface
 {
     /**
+     * @var string Default config file name.
+     */
+    private const DEFAULT_CONFIG_FILE_NAME = 'database.php';
+
+    /**
      * Execute console commands.
      * 
      * @param string $input
@@ -42,7 +47,7 @@ class ConsoleManager implements ConsoleManagerInterface
                 break;
 
             case 'migrate':
-                $this->migrate();
+                $this->migrate($argument);
                 break;
 
             case 'rollback':
@@ -84,7 +89,7 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function loadConfig($path)
     {
-        $configs = require $path . '/database.php';
+        $configs = require $path . self::DEFAULT_CONFIG_FILE_NAME;
         return $configs;
     }
 
@@ -179,7 +184,7 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         $this->createFile(
             $path ?? dirname(__DIR__, 5),
-            'database.php',
+            self::DEFAULT_CONFIG_FILE_NAME,
             file_get_contents(__DIR__ . '/templates/database.php.dist')
         );
     }
