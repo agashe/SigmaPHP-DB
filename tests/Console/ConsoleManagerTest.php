@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-use SigmaPHP\Core\Console\ConsoleManager;
+use SigmaPHP\DB\Console\ConsoleManager;
 
 /**
  * Console Manager Test

@@ -1,6 +1,6 @@
 <?php
 
-namespace SigmaPHP\Core\Interfaces\Console;
+namespace SigmaPHP\DB\Interfaces\Console;
 
 /**
  * Console Manager Interface

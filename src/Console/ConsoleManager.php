@@ -1,23 +1,14 @@
 <?php
 
-namespace SigmaPHP\Core\Console;
+namespace SigmaPHP\DB\Console;
 
-use PassGen\PassGen;
-use SigmaPHP\Core\Config\Config;
+use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
 
 /**
  * Console Manager Class
  */
-class ConsoleManager
+class ConsoleManager implements ConsoleManagerInterface
 {
-    /**
-     * ConsoleManager Constructor
-     */
-    public function __construct()
-    {
-        // todo
-    }
-
     /**
      * Execute console commands.
      * 
@@ -84,6 +75,18 @@ class ConsoleManager
             print($line . PHP_EOL);
         }
     }
+    
+    /**
+     * Load config.
+     *
+     * @param string $path
+     * @return array
+     */
+    private function loadConfig($path)
+    {
+        $configs = require $path . '/database.php';
+        return $configs;
+    }
 
     /**
      * Default error message.
@@ -118,10 +121,12 @@ class ConsoleManager
     private function help()
     {
         $helpContent = <<< HELP
-        These are all available commands with SigmaPHP CLI Tool:
+        These are all available commands with SigmaPHP-DB CLI Tool:
 
-            create:config
-                Create config file.
+            create:config {path}
+                Create config file, if no path was provided , a
+                default config file (database.php) will be created 
+                in the root of the project's folder. 
             create:migration {migration name}
                 Create migration file.
             create:seeder {seeder name}
@@ -135,7 +140,7 @@ class ConsoleManager
             seed
                 Run seeders.
             version
-                Print the current version of SigmaPHP Framework.
+                Print the current version of SigmaPHP-DB Library.
 
         Examples:
             - php sigma-db version
@@ -170,9 +175,13 @@ class ConsoleManager
      * @param string $path
      * @return void
      */
-    private function createConfigFile($path)
+    private function createConfigFile($path = '')
     {
-
+        $this->createFile(
+            $path ?? dirname(__DIR__, 5),
+            'database.php',
+            file_get_contents(__DIR__ . '/templates/database.php.dist')
+        );
     }
 
     /**
@@ -183,28 +192,7 @@ class ConsoleManager
      */
     private function createMigrationFile($fileName)
     {
-        $path = '';
-
-        $content = <<< MIGRATION_CONTENT
-        <?php
         
-        namespace SigmaPHP\Controllers;
-
-        use SigmaPHP\Core\Controllers\BaseController;
-
-        class $fileName extends BaseController
-        {
-            /**
-             * $fileName Constructor
-             */
-            public function __construct()
-            {
-                parent::__construct();
-            }
-        }
-        MIGRATION_CONTENT;
-
-        $this->createFile($path, $fileName . '.php', $content);
     }
 
     /**

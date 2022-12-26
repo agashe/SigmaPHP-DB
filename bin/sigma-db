@@ -2,3 +2,7 @@
 <?php
 
 require 'vendor/autoload.php';
+
+$console = new \SigmaPHP\DB\Console\ConsoleManager();
+
+$console->execute($argv);
