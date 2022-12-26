@@ -2,6 +2,7 @@
 
 namespace SigmaPHP\DB\Console;
 
+use Exception;
 use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
 
 /**
@@ -15,6 +16,11 @@ class ConsoleManager implements ConsoleManagerInterface
     private const DEFAULT_CONFIG_FILE_NAME = 'database.php';
 
     /**
+     * @var array $configs
+     */
+    private $configs;
+
+    /**
      * Execute console commands.
      * 
      * @param string $input
@@ -24,6 +30,7 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         $command = $input[1] ?? 'help';
         $argument = $input[2] ?? null;
+        $option = $input[3] ?? null;
 
         switch ($command) {
             case 'version':
@@ -39,22 +46,27 @@ class ConsoleManager implements ConsoleManagerInterface
                 break;
 
             case 'create:migration':
+                $this->loadConfigs();
                 $this->createMigrationFile($argument);
                 break;
 
             case 'create:seeder':
+                $this->loadConfigs();
                 $this->createSeeder($argument);
                 break;
 
             case 'migrate':
+                $this->loadConfigs();
                 $this->migrate($argument);
                 break;
 
             case 'rollback':
+                $this->loadConfigs();
                 $this->rollback();
                 break;
 
             case 'seed':
+                $this->loadConfigs();
                 $this->seed();
                 break;
 
@@ -82,18 +94,6 @@ class ConsoleManager implements ConsoleManagerInterface
     }
     
     /**
-     * Load config.
-     *
-     * @param string $path
-     * @return array
-     */
-    private function loadConfig($path)
-    {
-        $configs = require $path . self::DEFAULT_CONFIG_FILE_NAME;
-        return $configs;
-    }
-
-    /**
      * Default error message.
      * 
      * @return void
@@ -106,6 +106,34 @@ class ConsoleManager implements ConsoleManagerInterface
         NotFound;
 
         print($message . PHP_EOL);
+    }
+
+    /**
+     * Load config.
+     * 
+     * @param string $path
+     * @return void
+     */
+    private function loadConfigs($path = '')
+    {
+        $path = dirname(__DIR__, 2);
+
+        if (!empty($option)) {
+            if ((strpos($option, '--config=') !== false)) {
+                $path = str_replace('--config=', '', $option);
+            } else {
+                throw new Exception("Unknown option $option");
+            }    
+        }
+
+        if (!file_exists($path . '/' . self::DEFAULT_CONFIG_FILE_NAME)) {
+            echo <<<ERROR
+            \033[31mNo config file was found , please create new config
+            file or run 'php sigma-db help' for help.
+            ERROR . PHP_EOL;
+        }
+
+        $this->configs = require $path . '/' . self::DEFAULT_CONFIG_FILE_NAME;
     }
 
     /**
@@ -167,8 +195,8 @@ class ConsoleManager implements ConsoleManagerInterface
     private function createFile($path, $name, $content)
     {
         try {
-            file_put_contents($path . $name, $content);
-            echo "\033[32m {$name} was created successfully" . PHP_EOL;
+            file_put_contents($path . '/' . $name, $content);
+            echo "\033[32m{$name} was created successfully" . PHP_EOL;
         } catch (\Exception $e) {
             echo "\033[31m $e" . PHP_EOL;
         }
@@ -183,7 +211,7 @@ class ConsoleManager implements ConsoleManagerInterface
     private function createConfigFile($path = '')
     {
         $this->createFile(
-            $path ?? dirname(__DIR__, 5),
+            $path ?: dirname(__DIR__, 5),
             self::DEFAULT_CONFIG_FILE_NAME,
             file_get_contents(__DIR__ . '/templates/database.php.dist')
         );
@@ -197,7 +225,21 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createMigrationFile($fileName)
     {
-        
+        if (!is_dir($this->configs['path_to_migrations'])) {
+            mkdir($this->configs['path_to_migrations'], 0755, true);
+        }
+
+        $fileName = 'Create' . ucfirst($fileName) . 'Table';
+
+        $this->createFile(
+            $this->configs['path_to_migrations'],
+            $fileName . '.php',
+            str_replace(
+                '$fileName',
+                $fileName,
+                file_get_contents(__DIR__ . '/templates/migration.php.dist')
+            )
+        );
     }
 
     /**

@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'path_to_migrations'  => './database/migrations',
-    'path_to_seeders'     => './database/seeders',
+    'path_to_migrations'  => __DIR__ . 'database/migrations',
+    'path_to_seeders'     => __DIR__ . 'database/seeders',
     'logs_table_name'     => 'db_logs',
     'database_connection' => [
         'host' => 'localhost',

@@ -1,0 +1,22 @@
+<?php
+
+use SigmaPHP\DB\Migrations\Migration;
+
+class $fileName extends Migration
+{
+    /**
+     * @return void
+     */
+    public function up()
+    {
+        // up method
+    }
+
+    /**
+     * @return void
+     */
+    public function down()
+    {
+        // down method
+    }
+}
