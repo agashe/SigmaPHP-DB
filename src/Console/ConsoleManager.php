@@ -116,7 +116,7 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function loadConfigs($path = '')
     {
-        $path = dirname(__DIR__, 2);
+        $path = dirname(__DIR__, 5);
 
         if (!empty($option)) {
             if ((strpos($option, '--config=') !== false)) {
@@ -229,7 +229,7 @@ class ConsoleManager implements ConsoleManagerInterface
             mkdir($this->configs['path_to_migrations'], 0755, true);
         }
 
-        $fileName = 'Create' . ucfirst($fileName) . 'Table';
+        $fileName = ucfirst($fileName) . 'Migration';
 
         $this->createFile(
             $this->configs['path_to_migrations'],
@@ -245,12 +245,26 @@ class ConsoleManager implements ConsoleManagerInterface
     /**
      * Create new seeder.
      * 
-     * @param string $seederName
+     * @param string $fileName
      * @return void
      */
-    private function createSeeder($seederName)
+    private function createSeeder($fileName)
     {
+        if (!is_dir($this->configs['path_to_seeders'])) {
+            mkdir($this->configs['path_to_seeders'], 0755, true);
+        }
 
+        $fileName = ucfirst($fileName) . 'Seeder';
+
+        $this->createFile(
+            $this->configs['path_to_seeders'],
+            $fileName . '.php',
+            str_replace(
+                '$fileName',
+                $fileName,
+                file_get_contents(__DIR__ . '/templates/seeder.php.dist')
+            )
+        );
     }
 
     /**
