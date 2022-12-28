@@ -127,7 +127,7 @@ class Logger implements LoggerInterface
      * @param string $migration the migration file name
      * @return void
      */
-    public function removeLog($migration)
+    final public function removeLog($migration)
     {
         $removeMigration = $this->connection->prepare("
             DELETE FROM 
