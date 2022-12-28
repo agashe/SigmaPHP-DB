@@ -33,6 +33,8 @@ class Logger implements LoggerInterface
             $this->dbConfigs['user'],
             $this->dbConfigs['pass']
         );
+
+        $this->createLogsTable();
     }
 
     /**
@@ -59,10 +61,8 @@ class Logger implements LoggerInterface
      * @param $string $migration the migration file name
      * @return void
      */
-    public function log($migration)
+    final public function log($migration)
     {
-        $this->createLogsTable();
-
         $createLogsTable = $this->connection->prepare("
             INSERT INTO {$this->dbConfigs['logs_table_name']} (migration)
             VALUES ('$migration')
@@ -70,5 +70,72 @@ class Logger implements LoggerInterface
         ");
 
         $createLogsTable->execute();
+    }
+
+    /**
+     * Get all migrations files that can be migrated.
+     * 
+     * @param array $migrations
+     * @return array
+     */
+    final public function canBeMigrated($migrations)
+    {
+        $allLoggedMigrations = $this->connection->prepare("
+            SELECT migration FROM {$this->dbConfigs['logs_table_name']};
+        ");
+
+        $allLoggedMigrations->execute();
+
+        return array_diff(
+            $migrations,
+            $allLoggedMigrations->fetchAll(\PDO::FETCH_COLUMN, 0),
+        );
+    }
+    
+    /**
+     * Get all migrations that can be rolled back.
+     * 
+     * @return array
+     */
+    final public function canBeRolledBack()
+    {
+        $migrations = $this->connection->prepare("
+            SELECT
+                migration 
+            FROM
+                {$this->dbConfigs['logs_table_name']}
+            WHERE DATE(executed_at) = (
+                SELECT
+                    DATE(executed_at)
+                FROM
+                    {$this->dbConfigs['logs_table_name']}
+                GROUP BY
+                    DATE(executed_at) 
+                ORDER BY
+                    DATE(executed_at) DESC
+                LIMIT 1
+            );
+        ");
+
+        $migrations->execute();
+        return $migrations->fetchAll(\PDO::FETCH_COLUMN, 0);
+    }
+
+    /**
+     * Remove the log for a migration.
+     * 
+     * @param string $migration the migration file name
+     * @return void
+     */
+    public function removeLog($migration)
+    {
+        $removeMigration = $this->connection->prepare("
+            DELETE FROM 
+                {$this->dbConfigs['logs_table_name']} 
+            WHERE 
+                migration='$migration';
+        ");
+
+        $removeMigration->execute();
     }
 }

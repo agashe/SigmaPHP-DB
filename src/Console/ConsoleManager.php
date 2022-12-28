@@ -2,8 +2,8 @@
 
 namespace SigmaPHP\DB\Console;
 
-use Exception;
 use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
+use SigmaPHP\DB\Migrations\Logger;
 
 /**
  * Console Manager Class
@@ -19,6 +19,19 @@ class ConsoleManager implements ConsoleManagerInterface
      * @var array $configs
      */
     private $configs;
+ 
+    /**
+     * @var string $basePath
+     */
+    private $basePath;
+
+    /**
+     * ConsoleManager Constructor
+     */
+    public function __construct()
+    {
+        $this->basePath = dirname(__DIR__, 5);
+    }
 
     /**
      * Execute console commands.
@@ -67,7 +80,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
             case 'seed':
                 $this->loadConfigs();
-                $this->seed();
+                $this->seed($argument);
                 break;
 
             default:
@@ -116,13 +129,13 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function loadConfigs($path = '')
     {
-        $path = dirname(__DIR__, 5);
+        $path = $this->basePath;
 
         if (!empty($option)) {
             if ((strpos($option, '--config=') !== false)) {
                 $path = str_replace('--config=', '', $option);
             } else {
-                throw new Exception("Unknown option $option");
+                throw new \Exception("Unknown option $option");
             }    
         }
 
@@ -211,7 +224,7 @@ class ConsoleManager implements ConsoleManagerInterface
     private function createConfigFile($path = '')
     {
         $this->createFile(
-            $path ?: dirname(__DIR__, 5),
+            $path ?: $this->basePath,
             self::DEFAULT_CONFIG_FILE_NAME,
             file_get_contents(__DIR__ . '/templates/database.php.dist')
         );
@@ -270,11 +283,55 @@ class ConsoleManager implements ConsoleManagerInterface
     /**
      * Migrate the database.
      * 
+     * @param string $migrationName
      * @return void
      */
     private function migrate($migrationName)
     {
+        $migrations = [];
+        $logger = new Logger(
+            ['logs_table_name' => $this->configs['logs_table_name']] + 
+            $this->configs['database_connection']
+        );
 
+        if (!empty($migrationName)) {
+            if (!empty($logger->canBeMigrated([$migrationName]))) {
+                $migrations[] = $migrationName;
+            } else {
+                echo "\033[32m{$migrationName} was already migrated." . PHP_EOL;
+                return;
+            }
+        } else {
+            if ($handle = opendir($this->configs['path_to_migrations'])) {
+                while (($file = readdir($handle))) {
+                    if (in_array($file, ['.', '..'])) continue;
+                    $migrations[] = str_replace('.php', '', $file);   
+                }
+                
+                closedir($handle);
+            }
+
+            $migrations = $logger->canBeMigrated($migrations);
+
+            if (empty($migrations)) {
+                echo "\033[32mNothing to be migrated." . PHP_EOL;
+                return;
+            }
+        }
+
+        foreach ($migrations as $migration) {
+            require_once $this->configs['path_to_migrations'] . 
+                '/' . $migration . '.php';
+            
+            $migrationClass = new $migration(
+                $this->configs['database_connection']
+            );
+            
+            $migrationClass->up();
+            $logger->log($migration);
+        }
+
+        echo "\033[32mAll migrations ran successfully." . PHP_EOL;
     }
 
     /**
@@ -284,16 +341,62 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function rollback()
     {
+        $logger = new Logger(
+            ['logs_table_name' => $this->configs['logs_table_name']] + 
+            $this->configs['database_connection']
+        );
 
+        foreach ($logger->canBeRolledBack() as $migration) {
+            require_once $this->configs['path_to_migrations'] . 
+                '/' . $migration . '.php';
+            
+            $migrationClass = new $migration(
+                $this->configs['database_connection']
+            );
+            
+            $migrationClass->down();
+            $logger->removeLog($migration);
+        }
+
+        echo "\033[32mDatabase rolled back successfully." . PHP_EOL;
     }
 
     /**
      * Seed the database.
      * 
+     * @param string $seederName
      * @return void
      */
-    private function seed()
+    private function seed($seederName)
     {
+        $seeders = [];
 
+        if (!empty($seederName)) {
+            if (file_exists(
+                $this->configs['path_to_seeders'] . "/" . $seederName . '.php'
+            )) {
+                $seeders[] = $seederName;
+            } else {
+                throw new \Exception("Seeder '$seederName' doesn't exist!");
+            }
+        } else {            
+            if ($handle = opendir($this->configs['path_to_seeders'])) {
+                while (($file = readdir($handle))) {
+                    if (in_array($file, ['.', '..'])) continue;
+                    $seeders[] = str_replace('.php', '', $file);   
+                }
+                
+                closedir($handle);
+            }
+        }
+
+        foreach ($seeders as $seeder) {
+            require_once $this->configs['path_to_seeders'] . 
+            '/' . $seeder . '.php';
+            $seed = new $seeder($this->configs['database_connection']);
+            $seed->run();
+        }
+
+        echo "\033[32mAll seeders ran successfully." . PHP_EOL;
     }
 }
