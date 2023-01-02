@@ -54,8 +54,10 @@ class ConsoleManagerTest extends TestCase
 
         $this->consoleManager->execute($input);
 
-        $expectedMessage = "Invalid command.\n";
-        $expectedMessage .= "Type 'php sigma-db help' command for help.\n";
+        $expectedMessage = <<< TEXT
+        \033[31mInvalid command.
+        Type 'php sigma-db help' command for help.\n
+        TEXT;
 
         $this->expectOutputString($expectedMessage);
     }
