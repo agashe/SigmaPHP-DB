@@ -11,6 +11,11 @@ use SigmaPHP\DB\Interfaces\Migrations\LoggerInterface;
 class Logger implements LoggerInterface
 {
     /**
+     * @var string $logsTable
+     */
+    private $logsTable;
+
+    /**
      * @var array $dbConfigs
      */
     private $dbConfigs;
@@ -23,9 +28,10 @@ class Logger implements LoggerInterface
     /**
      * Logger Constructor
      */
-    public function __construct($dbConfigs)
+    public function __construct($dbConfigs, $logsTable)
     {
         $this->dbConfigs = $dbConfigs;
+        $this->logsTable = $logsTable;
 
         $this->connection = new \PDO(
             "mysql:host={$this->dbConfigs['host']};
@@ -45,7 +51,7 @@ class Logger implements LoggerInterface
     private function createLogsTable()
     {
         $createLogsTable = $this->connection->prepare("
-            CREATE TABLE IF NOT EXISTS {$this->dbConfigs['logs_table_name']} (
+            CREATE TABLE IF NOT EXISTS {$this->logsTable} (
                 id INT(11) AUTO_INCREMENT PRIMARY KEY,
                 migration VARCHAR(255) NOT NULL,
                 executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -64,7 +70,7 @@ class Logger implements LoggerInterface
     final public function log($migration)
     {
         $createLogsTable = $this->connection->prepare("
-            INSERT INTO {$this->dbConfigs['logs_table_name']} (migration)
+            INSERT INTO {$this->logsTable} (migration)
             VALUES ('$migration')
             ;
         ");
@@ -81,7 +87,7 @@ class Logger implements LoggerInterface
     final public function canBeMigrated($migrations)
     {
         $allLoggedMigrations = $this->connection->prepare("
-            SELECT migration FROM {$this->dbConfigs['logs_table_name']};
+            SELECT migration FROM {$this->logsTable};
         ");
 
         $allLoggedMigrations->execute();
@@ -103,12 +109,12 @@ class Logger implements LoggerInterface
             SELECT
                 migration 
             FROM
-                {$this->dbConfigs['logs_table_name']}
+                {$this->logsTable}
             WHERE DATE(executed_at) = (
                 SELECT
                     DATE(executed_at)
                 FROM
-                    {$this->dbConfigs['logs_table_name']}
+                    {$this->logsTable}
                 GROUP BY
                     DATE(executed_at) 
                 ORDER BY
@@ -131,7 +137,7 @@ class Logger implements LoggerInterface
     {
         $removeMigration = $this->connection->prepare("
             DELETE FROM 
-                {$this->dbConfigs['logs_table_name']} 
+                {$this->logsTable} 
             WHERE 
                 migration='$migration';
         ");

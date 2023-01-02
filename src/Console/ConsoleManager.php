@@ -30,7 +30,7 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     public function __construct()
     {
-        $this->basePath = dirname(__DIR__, 5);
+        $this->basePath = dirname(__DIR__, 2);
     }
 
     /**
@@ -55,31 +55,31 @@ class ConsoleManager implements ConsoleManagerInterface
                 break;
             
             case 'create:config':
-                $this->createConfigFile();
+                $this->createConfigFile($argument);
                 break;
 
             case 'create:migration':
-                $this->loadConfigs();
+                $this->loadConfigs($option);
                 $this->createMigrationFile($argument);
                 break;
 
             case 'create:seeder':
-                $this->loadConfigs();
+                $this->loadConfigs($option);
                 $this->createSeeder($argument);
                 break;
 
             case 'migrate':
-                $this->loadConfigs();
+                $this->loadConfigs($option);
                 $this->migrate($argument);
                 break;
 
             case 'rollback':
-                $this->loadConfigs();
+                $this->loadConfigs($option);
                 $this->rollback();
                 break;
 
             case 'seed':
-                $this->loadConfigs();
+                $this->loadConfigs($option);
                 $this->seed($argument);
                 break;
 
@@ -87,6 +87,35 @@ class ConsoleManager implements ConsoleManagerInterface
                 $this->commandNotFound();
                 break;
         }
+    }
+
+    /**
+     * Print lines with custom font color.
+     *
+     * @param string $text
+     * @param string $color
+     * @return void
+     */
+    private function printMessage($text, $color = '')
+    {
+        // check if the stream (terminal) supports colorization.
+        if (!stream_isatty(STDOUT) || isset($_SERVER['NO_COLOR'])) {
+            $color = '';
+        }
+
+        switch ($color) {
+            case 'success':
+                $color = "\033[32m";
+                break;
+            case 'error':
+                $color = "\033[31m";
+                break;
+            default:
+                $color = '';
+                break;
+        }
+
+        echo "{$color}{$text}" . PHP_EOL;
     }
 
     /**
@@ -118,7 +147,7 @@ class ConsoleManager implements ConsoleManagerInterface
         Type 'php sigma-db help' command for help.
         NotFound;
 
-        print($message . PHP_EOL);
+        $this->printMessage($message, "error");
     }
 
     /**
@@ -129,24 +158,27 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function loadConfigs($path = '')
     {
-        $path = $this->basePath;
+        $configPath = $this->basePath;
 
-        if (!empty($option)) {
-            if ((strpos($option, '--config=') !== false)) {
-                $path = str_replace('--config=', '', $option);
+        if (!empty($path)) {
+            if ((strpos($path, '--config=') !== false)) {
+                $configPath = str_replace('--config=', '', $path);
             } else {
-                throw new \Exception("Unknown option $option");
+                throw new \Exception("Unknown option $path");
             }    
         }
 
-        if (!file_exists($path . '/' . self::DEFAULT_CONFIG_FILE_NAME)) {
-            echo <<<ERROR
-            \033[31mNo config file was found , please create new config
+        if (!file_exists($configPath . '/' . self::DEFAULT_CONFIG_FILE_NAME)) {
+            $message = <<<ERROR
+            No config file was found , please create new config
             file or run 'php sigma-db help' for help.
-            ERROR . PHP_EOL;
+            ERROR;
+
+            $this->printMessage($message, "error");
         }
 
-        $this->configs = require $path . '/' . self::DEFAULT_CONFIG_FILE_NAME;
+        $this->configs = require $configPath . '/' . 
+            self::DEFAULT_CONFIG_FILE_NAME;
     }
 
     /**
@@ -156,7 +188,7 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function version()
     {
-        print("SigmaPHP-DB version 0.1.0" . PHP_EOL);
+        $this->printMessage("SigmaPHP-DB version 0.1.0");
     }
     
     /**
@@ -194,7 +226,7 @@ class ConsoleManager implements ConsoleManagerInterface
             - php sigma-db seed
         HELP;
 
-        print($helpContent . PHP_EOL);
+        $this->printMessage($helpContent);
     }
     
     /**
@@ -209,9 +241,9 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         try {
             file_put_contents($path . '/' . $name, $content);
-            echo "\033[32m{$name} was created successfully" . PHP_EOL;
+            $this->printMessage("{$name} was created successfully", "success");
         } catch (\Exception $e) {
-            echo "\033[31m $e" . PHP_EOL;
+            $this->printMessage("{$e}", "error");
         }
     }
 
@@ -290,15 +322,19 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         $migrations = [];
         $logger = new Logger(
-            ['logs_table_name' => $this->configs['logs_table_name']] + 
-            $this->configs['database_connection']
+            $this->configs['database_connection'],
+            $this->configs['logs_table_name']
         );
 
         if (!empty($migrationName)) {
             if (!empty($logger->canBeMigrated([$migrationName]))) {
                 $migrations[] = $migrationName;
             } else {
-                echo "\033[32m{$migrationName} was already migrated." . PHP_EOL;
+                $this->printMessage(
+                    "{$migrationName} was already migrated.",
+                    "error"
+                );
+
                 return;
             }
         } else {
@@ -314,7 +350,11 @@ class ConsoleManager implements ConsoleManagerInterface
             $migrations = $logger->canBeMigrated($migrations);
 
             if (empty($migrations)) {
-                echo "\033[32mNothing to be migrated." . PHP_EOL;
+                $this->printMessage(
+                    "Nothing to be migrated.",
+                    "error"
+                );
+
                 return;
             }
         }
@@ -331,7 +371,10 @@ class ConsoleManager implements ConsoleManagerInterface
             $logger->log($migration);
         }
 
-        echo "\033[32mAll migrations ran successfully." . PHP_EOL;
+        $this->printMessage(
+            "All migrations ran successfully.",
+            "success"
+        );
     }
 
     /**
@@ -342,8 +385,8 @@ class ConsoleManager implements ConsoleManagerInterface
     private function rollback()
     {
         $logger = new Logger(
-            ['logs_table_name' => $this->configs['logs_table_name']] + 
-            $this->configs['database_connection']
+            $this->configs['database_connection'],
+            $this->configs['logs_table_name']
         );
 
         foreach ($logger->canBeRolledBack() as $migration) {
@@ -358,7 +401,7 @@ class ConsoleManager implements ConsoleManagerInterface
             $logger->removeLog($migration);
         }
 
-        echo "\033[32mDatabase rolled back successfully." . PHP_EOL;
+        $this->printMessage("Database rolled back successfully.", "success");
     }
 
     /**
@@ -397,6 +440,6 @@ class ConsoleManager implements ConsoleManagerInterface
             $seed->run();
         }
 
-        echo "\033[32mAll seeders ran successfully." . PHP_EOL;
+        $this->printMessage("All seeders ran successfully.", "success");
     }
 }

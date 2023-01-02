@@ -10,14 +10,19 @@ use SigmaPHP\DB\Migrations\Logger;
 class LoggerTest extends TestCase
 {
     /**
+     * @var string $testLogsTable
+     */
+    private $testLogsTable;
+
+    /**
      * @var array $dbConfigs
      */
     private $dbConfigs;
     
     /**
-     * @var Logger $migration
+     * @var Logger $logger
      */
-    private $migration;
+    private $logger;
 
     /**
      * LoggerTest SetUp
@@ -34,10 +39,10 @@ class LoggerTest extends TestCase
             'pass' => $GLOBALS['DB_PASS'],
         ];
 
-        $this->dbConfigs['logs_table_name'] = 'db_logs';
+        $this->testLogsTable = 'db_logs_test';
 
         // create new migration instance
-        $this->logger = new Logger($this->dbConfigs);
+        $this->logger = new Logger($this->dbConfigs, $this->testLogsTable);
     }
 
     /**
@@ -66,14 +71,14 @@ class LoggerTest extends TestCase
         $this->logger->log('my_migration_123');
 
         $logs = $this->connectToDatabase()->prepare("
-            SELECT * FROM {$this->dbConfigs['logs_table_name']}
+            SELECT * FROM {$this->testLogsTable}
         ");
 
         $logs->execute();
         $this->assertNotEmpty($logs->fetch());
 
         $dropMigrationsLogs = $this->connectToDatabase()->prepare("
-            DROP TABLE {$this->dbConfigs['logs_table_name']}
+            DROP TABLE {$this->testLogsTable}
         ");
 
         $dropMigrationsLogs->execute();
@@ -101,7 +106,7 @@ class LoggerTest extends TestCase
         );
         
         $dropMigrationsLogs = $this->connectToDatabase()->prepare("
-            DROP TABLE {$this->dbConfigs['logs_table_name']}
+            DROP TABLE {$this->testLogsTable}
         ");
 
         $dropMigrationsLogs->execute();
@@ -118,13 +123,13 @@ class LoggerTest extends TestCase
         $this->logger->log('my_migration_123');
 
         $logs = $this->connectToDatabase()->prepare("
-            DELETE FROM {$this->dbConfigs['logs_table_name']} WHERE 1;
+            DELETE FROM {$this->testLogsTable} WHERE 1;
         ");
 
         $logs->execute();
 
         $logs = $this->connectToDatabase()->prepare("
-            INSERT INTO {$this->dbConfigs['logs_table_name']} 
+            INSERT INTO {$this->testLogsTable} 
                 (migration, executed_at)
             VALUES
                 ('test1', '2022-12-14 11:11:00'), 
@@ -137,7 +142,7 @@ class LoggerTest extends TestCase
         $this->assertEquals(2, count($this->logger->canBeRolledBack()));
         
         $dropMigrationsLogs = $this->connectToDatabase()->prepare("
-            DROP TABLE {$this->dbConfigs['logs_table_name']}
+            DROP TABLE {$this->testLogsTable}
         ");
 
         $dropMigrationsLogs->execute();
@@ -157,14 +162,14 @@ class LoggerTest extends TestCase
         $this->logger->removeLog('my_migration_2');
 
         $logs = $this->connectToDatabase()->prepare("
-            SELECT * FROM {$this->dbConfigs['logs_table_name']}
+            SELECT * FROM {$this->testLogsTable}
         ");
 
         $logs->execute();
         $this->assertEquals(1, count($logs->fetchAll(\PDO::FETCH_COLUMN, 1)));
 
         $dropMigrationsLogs = $this->connectToDatabase()->prepare("
-            DROP TABLE {$this->dbConfigs['logs_table_name']}
+            DROP TABLE {$this->testLogsTable}
         ");
 
         $dropMigrationsLogs->execute();
