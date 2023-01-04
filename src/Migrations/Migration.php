@@ -3,38 +3,33 @@
 namespace SigmaPHP\DB\Migrations;
 
 use SigmaPHP\DB\Interfaces\Migrations\MigrationInterface;
+use SigmaPHP\DB\Connectors\Connector;
+use SigmaPHP\DB\Traits\DbMethods;
 
 /**
  * Migration Class
  */
 class Migration implements MigrationInterface
 {
+    use DbMethods;
+
     /**
-     * @var array $dbConfigs
+     * @var Connector $dbConnection
      */
-    private $dbConfigs;
+    private $dbConnection;
+
+    /**
+     * @var string $dbName
+     */
+    private $dbName;
 
     /**
      * Migration Constructor
      */
-    public function __construct($dbConfigs)
+    public function __construct($dbConnection, $dbName)
     {
-        $this->dbConfigs = $dbConfigs;
-    }
-
-    /**
-     * Connect to database.
-     * 
-     * @return \PDO
-     */
-    private function connectToDatabase()
-    {
-        return new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
-        );
+        $this->dbConnection = $dbConnection;
+        $this->dbName = $dbName;
     }
 
     /**
@@ -127,23 +122,6 @@ class Migration implements MigrationInterface
      * @return void
      */
     public function down(){}
-
-    /**
-     * Execute SQL statements.
-     *
-     * @param string $statement
-     * @return void
-     */
-    final public function execute($statement)
-    {
-        try {
-            $this->connectToDatabase()
-                ->prepare($statement)
-                ->execute();
-        } catch (\Exception $e) {
-            echo $e;
-        }
-    }
 
     /**
      * Create new table schema.
@@ -267,19 +245,16 @@ class Migration implements MigrationInterface
      */
     final public function checkTable($name)
     {
-        $tableExists = $this->connectToDatabase()->prepare("
+        return (bool) $this->execute("
             SELECT
                 TABLE_NAME
             FROM 
                 INFORMATION_SCHEMA.TABLES
             WHERE 
-                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
+                TABLE_SCHEMA = '{$this->dbName}'
             AND
                 TABLE_NAME = '{$name}';
         ");
-
-        $tableExists->execute();
-        return ($tableExists->fetch() != false);
     }
 
     /**
@@ -371,21 +346,18 @@ class Migration implements MigrationInterface
      */
     final public function checkColumn($table, $name)
     {
-        $tableExists = $this->connectToDatabase()->prepare("
+        return (bool) $this->execute("
             SELECT
                 COLUMN_NAME
             FROM 
                 INFORMATION_SCHEMA.COLUMNS
             WHERE 
-                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
+                TABLE_SCHEMA = '{$this->dbName}'
             AND
                 TABLE_NAME = '{$table}'
             AND
                 COLUMN_NAME = '{$name}';
         ");
-
-        $tableExists->execute();
-        return ($tableExists->fetch() != false);
     }
 
     /**
@@ -447,16 +419,13 @@ class Migration implements MigrationInterface
      * 
      * @param string $table
      * @param string $name
-     * @return void
+     * @return bool
      */
     final public function checkIndex($table, $name)
     {
-        $indexExists = $this->connectToDatabase()->prepare("
+        return (bool) $this->execute("
             SHOW INDEX FROM $table WHERE Key_name='$name';
         ");
-
-        $indexExists->execute();
-        return ($indexExists->fetch() != false);
     }
 
     /**
@@ -517,11 +486,11 @@ class Migration implements MigrationInterface
      * 
      * @param string $table
      * @param string $constraint
-     * @return void
+     * @return bool
      */
     final public function checkForeignKey($table, $constraint)
     {
-        $foreignKeyExists = $this->connectToDatabase()->prepare("
+        return (bool) $this->execute("
             SELECT
                 CONSTRAINT_NAME
             FROM 
@@ -531,9 +500,6 @@ class Migration implements MigrationInterface
             AND
                 CONSTRAINT_NAME = '{$constraint}';
         ");
-
-        $foreignKeyExists->execute();
-        return ($foreignKeyExists->fetch() != false);
     }
 
     /**

@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 use SigmaPHP\DB\Migrations\Migration;
+use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * Migration Test
@@ -31,14 +32,19 @@ class MigrationTest extends TestCase
             'host' => $GLOBALS['DB_HOST'],
             'name' => $GLOBALS['DB_NAME'],
             'user' => $GLOBALS['DB_USER'],
-            'pass' => $GLOBALS['DB_PASS']
+            'pass' => $GLOBALS['DB_PASS'],
+            'port' => $GLOBALS['DB_PORT'],
         ];
 
         // create test table
         $this->createTestTable();
         
         // create new migration instance
-        $this->migration = new Migration($this->dbConfigs);
+        $connector = new Connector();
+        $this->migration = new Migration(
+            $connector->connect($this->dbConfigs),
+            $this->dbConfigs['name']
+        );
     }
     
     /**
