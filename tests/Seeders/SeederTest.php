@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 use SigmaPHP\DB\Seeders\Seeder;
+use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * Seeder Test
@@ -31,14 +32,18 @@ class SeederTest extends TestCase
             'host' => $GLOBALS['DB_HOST'],
             'name' => $GLOBALS['DB_NAME'],
             'user' => $GLOBALS['DB_USER'],
-            'pass' => $GLOBALS['DB_PASS']
+            'pass' => $GLOBALS['DB_PASS'],
+            'port' => $GLOBALS['DB_PORT']
         ];
 
         // create test table
         $this->createTestTable();
         
-        // create new seeder
-        $this->seeder = new Seeder($this->dbConfigs);
+        // create new seeder instance
+        $connector = new Connector();
+        $this->seeder = new Seeder(
+            $connector->connect($this->dbConfigs)
+        );
     }
     
     /**

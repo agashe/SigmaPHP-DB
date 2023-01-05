@@ -3,35 +3,27 @@
 namespace SigmaPHP\DB\Seeders;
 
 use SigmaPHP\DB\Interfaces\Seeders\SeederInterface;
+use SigmaPHP\DB\Connectors\Connector;
+use SigmaPHP\DB\Traits\DbMethods;
 
 /**
  * Seeder Class
  */
 class Seeder implements SeederInterface
 {
-    /**
-     * @var array $dbConfigs
-     */
-    private $dbConfigs;
+    use DbMethods;
 
     /**
-     * @var \PDO $connection
+     * @var Connector $dbConnection
      */
-    private $connection;
+    private $dbConnection;
     
     /**
-     * Logger Constructor
+     * Seeder Constructor
      */
-    public function __construct($dbConfigs)
+    public function __construct($dbConnection)
     {
-        $this->dbConfigs = $dbConfigs;
-
-        $this->connection = new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
-        );
+        $this->dbConnection = $dbConnection;
     }
 
     /**
@@ -43,23 +35,6 @@ class Seeder implements SeederInterface
      * @return void
      */
     public function run(){}
-
-    /**
-     * Execute SQL statements.
-     *
-     * @param string $statement
-     * @return void
-     */
-    final public function execute($statement)
-    {
-        try {
-            $this->connection
-                ->prepare($statement)
-                ->execute();
-        } catch (\Exception $e) {
-            echo $e;
-        }
-    }
 
     /**
      * Insert data into table.

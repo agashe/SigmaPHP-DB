@@ -3,42 +3,33 @@
 namespace SigmaPHP\DB\Migrations;
 
 use SigmaPHP\DB\Interfaces\Migrations\LoggerInterface;
-
+use SigmaPHP\DB\Connectors\Connector;
+use SigmaPHP\DB\Traits\DbMethods;
 
 /**
  * Logger Class
  */
 class Logger implements LoggerInterface
 {
+    use DbMethods;
+    
+    /**
+     * @var Connector $dbConnection
+     */
+    private $dbConnection;
+
     /**
      * @var string $logsTable
      */
     private $logsTable;
-
-    /**
-     * @var array $dbConfigs
-     */
-    private $dbConfigs;
-
-    /**
-     * @var \PDO $connection
-     */
-    private $connection;
     
     /**
      * Logger Constructor
      */
-    public function __construct($dbConfigs, $logsTable)
+    public function __construct($dbConnection, $logsTable)
     {
-        $this->dbConfigs = $dbConfigs;
+        $this->dbConnection = $dbConnection;
         $this->logsTable = $logsTable;
-
-        $this->connection = new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
-        );
 
         $this->createLogsTable();
     }
@@ -50,15 +41,13 @@ class Logger implements LoggerInterface
      */
     private function createLogsTable()
     {
-        $createLogsTable = $this->connection->prepare("
+        $this->execute("
             CREATE TABLE IF NOT EXISTS {$this->logsTable} (
                 id INT(11) AUTO_INCREMENT PRIMARY KEY,
                 migration VARCHAR(255) NOT NULL,
                 executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ");
-
-        $createLogsTable->execute();
     }
 
     /**
@@ -69,13 +58,11 @@ class Logger implements LoggerInterface
      */
     final public function log($migration)
     {
-        $createLogsTable = $this->connection->prepare("
+        $this->execute("
             INSERT INTO {$this->logsTable} (migration)
             VALUES ('$migration')
             ;
         ");
-
-        $createLogsTable->execute();
     }
 
     /**
@@ -86,15 +73,13 @@ class Logger implements LoggerInterface
      */
     final public function canBeMigrated($migrations)
     {
-        $allLoggedMigrations = $this->connection->prepare("
+        $allLoggedMigrations = $this->fetchColumn("
             SELECT migration FROM {$this->logsTable};
-        ");
-
-        $allLoggedMigrations->execute();
+        ", 0);
 
         return array_diff(
             $migrations,
-            $allLoggedMigrations->fetchAll(\PDO::FETCH_COLUMN, 0),
+            $allLoggedMigrations,
         );
     }
     
@@ -105,7 +90,7 @@ class Logger implements LoggerInterface
      */
     final public function canBeRolledBack()
     {
-        $migrations = $this->connection->prepare("
+        return $this->fetchColumn("
             SELECT
                 migration 
             FROM
@@ -121,10 +106,7 @@ class Logger implements LoggerInterface
                     DATE(executed_at) DESC
                 LIMIT 1
             );
-        ");
-
-        $migrations->execute();
-        return $migrations->fetchAll(\PDO::FETCH_COLUMN, 0);
+        ", 0);
     }
 
     /**
@@ -135,13 +117,11 @@ class Logger implements LoggerInterface
      */
     final public function removeLog($migration)
     {
-        $removeMigration = $this->connection->prepare("
+        $this->execute("
             DELETE FROM 
                 {$this->logsTable} 
             WHERE 
                 migration='$migration';
         ");
-
-        $removeMigration->execute();
     }
 }

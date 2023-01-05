@@ -33,7 +33,7 @@ class MigrationTest extends TestCase
             'name' => $GLOBALS['DB_NAME'],
             'user' => $GLOBALS['DB_USER'],
             'pass' => $GLOBALS['DB_PASS'],
-            'port' => $GLOBALS['DB_PORT'],
+            'port' => $GLOBALS['DB_PORT']
         ];
 
         // create test table

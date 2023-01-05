@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 use SigmaPHP\DB\Migrations\Logger;
+use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * Logger Test
@@ -37,12 +38,17 @@ class LoggerTest extends TestCase
             'name' => $GLOBALS['DB_NAME'],
             'user' => $GLOBALS['DB_USER'],
             'pass' => $GLOBALS['DB_PASS'],
+            'port' => $GLOBALS['DB_PORT']
         ];
 
         $this->testLogsTable = 'db_logs_test';
 
-        // create new migration instance
-        $this->logger = new Logger($this->dbConfigs, $this->testLogsTable);
+        // create new logger instance
+        $connector = new Connector();
+        $this->logger = new Logger(
+            $connector->connect($this->dbConfigs),
+            $this->testLogsTable
+        );
     }
 
     /**
