@@ -3,6 +3,7 @@
 namespace SigmaPHP\DB\Console;
 
 use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
+use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Migrations\Logger;
 
 /**
@@ -26,11 +27,17 @@ class ConsoleManager implements ConsoleManagerInterface
     private $basePath;
 
     /**
+     * @var Connector $dbConnection
+     */
+    private $dbConnector;
+
+    /**
      * ConsoleManager Constructor
      */
     public function __construct()
     {
         $this->basePath = dirname(__DIR__, 2);
+        $this->dbConnector = new Connector();
     }
 
     /**
@@ -322,7 +329,9 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         $migrations = [];
         $logger = new Logger(
-            $this->configs['database_connection'],
+            $this->dbConnector->connect(
+                $this->configs['database_connection']
+            ),
             $this->configs['logs_table_name']
         );
 
@@ -364,7 +373,10 @@ class ConsoleManager implements ConsoleManagerInterface
                 '/' . $migration . '.php';
             
             $migrationClass = new $migration(
-                $this->configs['database_connection']
+                $this->dbConnector->connect(
+                    $this->configs['database_connection']
+                ),
+                $this->configs['database_connection']['name']
             );
             
             $migrationClass->up();
@@ -385,7 +397,9 @@ class ConsoleManager implements ConsoleManagerInterface
     private function rollback()
     {
         $logger = new Logger(
-            $this->configs['database_connection'],
+            $this->dbConnector->connect(
+                $this->configs['database_connection']
+            ),
             $this->configs['logs_table_name']
         );
 
@@ -394,7 +408,10 @@ class ConsoleManager implements ConsoleManagerInterface
                 '/' . $migration . '.php';
             
             $migrationClass = new $migration(
-                $this->configs['database_connection']
+                $this->dbConnector->connect(
+                    $this->configs['database_connection']
+                ),
+                $this->configs['database_connection']['name']
             );
             
             $migrationClass->down();
@@ -435,8 +452,14 @@ class ConsoleManager implements ConsoleManagerInterface
 
         foreach ($seeders as $seeder) {
             require_once $this->configs['path_to_seeders'] . 
-            '/' . $seeder . '.php';
-            $seed = new $seeder($this->configs['database_connection']);
+                '/' . $seeder . '.php';
+
+            $seed = new $seeder(
+                $this->dbConnector->connect(
+                    $this->configs['database_connection']
+                )
+            );
+
             $seed->run();
         }
 
