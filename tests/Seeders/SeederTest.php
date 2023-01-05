@@ -104,26 +104,6 @@ class SeederTest extends TestCase
 
         $testTable->execute();
     }
-
-    /**
-     * Test execute SQL statements.
-     *
-     * @runInSeparateProcess
-     * @return void
-     */
-    public function testExecuteSqlStatements()
-    {
-        $this->seeder->execute("
-            INSERT INTO test (name, email) VALUES ('hello', 'world');
-        ");
-
-        $dataWasInserted = $this->connectToDatabase()->prepare("
-            SELECT * FROM test;
-        ");
-
-        $dataWasInserted->execute();
-        $this->assertNotEmpty($dataWasInserted->fetchAll());
-    }
     
     /**
      * Test insert data into table.

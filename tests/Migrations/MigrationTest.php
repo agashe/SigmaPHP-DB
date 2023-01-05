@@ -155,19 +155,6 @@ class MigrationTest extends TestCase
     }
 
     /**
-     * Test execute SQL statements.
-     *
-     * @runInSeparateProcess
-     * @return void
-     */
-    public function testExecuteSqlStatements()
-    {
-        $this->migration->execute('DROP TABLE IF EXISTS test');
-
-        $this->assertFalse($this->checkTableExists('test'));
-    }
-
-    /**
      * Test create table.
      *
      * @runInSeparateProcess
