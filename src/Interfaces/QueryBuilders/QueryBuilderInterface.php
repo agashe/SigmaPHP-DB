@@ -11,7 +11,7 @@ interface QueryBuilderInterface
      * Select the table which will be used to perform the query.
      * 
      * @param string $table
-     * @return object
+     * @return void
      */
     public function table($table);
    
@@ -20,7 +20,7 @@ interface QueryBuilderInterface
      * set , all fields in the table will be returned (using '*').
      * 
      * @param array $fields
-     * @return object
+     * @return void
      */
     public function select($fields);
 
@@ -32,7 +32,7 @@ interface QueryBuilderInterface
      * @param string $column
      * @param string $operator
      * @param string $value
-     * @return object
+     * @return void
      */
     public function where($column, $operator, $value);
 
@@ -42,7 +42,7 @@ interface QueryBuilderInterface
      * @param string $column
      * @param string $operator
      * @param string $value
-     * @return object
+     * @return void
      */
     public function andWhere($column, $operator, $value);
 
@@ -52,7 +52,7 @@ interface QueryBuilderInterface
      * @param string $column
      * @param string $operator
      * @param string $value
-     * @return object
+     * @return void
      */
     public function orWhere($column, $operator, $value);
     
@@ -62,7 +62,7 @@ interface QueryBuilderInterface
      * @param string $column
      * @param string $value1
      * @param string $value2
-     * @return object
+     * @return void
      */
     public function whereBetween($column, $value1, $value2);
 
@@ -72,21 +72,21 @@ interface QueryBuilderInterface
      * 
      * @param string $column
      * @param array $values
-     * @return object
+     * @return void
      */
     public function whereIn($column, $value1s);
     
     /**
      * Remove duplicates in result.
      * 
-     * @return object
+     * @return void
      */
     public function distinct();
 
     /**
      * Count rows in result.
      * 
-     * @return object
+     * @return void
      */
     public function count();
 
@@ -94,7 +94,7 @@ interface QueryBuilderInterface
      * Get the maximum value in a column.
      * 
      * @param string $column
-     * @return object
+     * @return void
      */
     public function max($column);
     
@@ -102,7 +102,7 @@ interface QueryBuilderInterface
      * Get the minimum value in a column.
      * 
      * @param string $column
-     * @return object
+     * @return void
      */
     public function min($column);
     
@@ -110,7 +110,7 @@ interface QueryBuilderInterface
      * Get the average value in a column.
      * 
      * @param string $column
-     * @return object
+     * @return void
      */
     public function avg($column);
     
@@ -118,7 +118,7 @@ interface QueryBuilderInterface
      * Get the total sum of column.
      * 
      * @param string $column
-     * @return object
+     * @return void
      */
     public function sum($column);
     
@@ -128,7 +128,7 @@ interface QueryBuilderInterface
      * 
      * @param int $count
      * @param int $offset
-     * @return object
+     * @return void
      */
     public function limit($count, $offset);
     
@@ -136,7 +136,7 @@ interface QueryBuilderInterface
      * Order the result rows based on some columns.
      * 
      * @param array $columns
-     * @return object
+     * @return void
      */
     public function orderBy($columns);
 
@@ -144,7 +144,7 @@ interface QueryBuilderInterface
      * Group the result rows based on some columns.
      * 
      * @param array $columns
-     * @return object
+     * @return void
      */
     public function groupBy($columns);
     
@@ -154,9 +154,9 @@ interface QueryBuilderInterface
      * the selected columns should be the same in both
      * queries in order to get valid result.
      * 
-     * @param object $query the second query to combine with 
+     * @param void $query the second query to combine with 
      * @param bool $all a flag to activate distinct values (by default false)
-     * @return object
+     * @return void
      */
     public function union($query, $all);
 
@@ -171,7 +171,7 @@ interface QueryBuilderInterface
      * @param string $operator
      * @param string $column2
      * @param string $type
-     * @return object
+     * @return void
      */
     public function join(
         $table,
@@ -196,7 +196,7 @@ interface QueryBuilderInterface
     public function getAll();
     
     /**
-     * Print the query without excution, we can use 
+     * Print the query without execution, we can use 
      * this method for debugging / logging.
      * 
      * @return string
