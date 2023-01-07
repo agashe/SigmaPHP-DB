@@ -18,14 +18,6 @@ interface SeederInterface
     public function run();
 
     /**
-     * Execute SQL statements.
-     *
-     * @param string $statement
-     * @return void
-     */
-    public function execute($statement);
-
-    /**
      * Insert data into table.
      * 
      * @param string $table

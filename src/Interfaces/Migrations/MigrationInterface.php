@@ -28,14 +28,6 @@ interface MigrationInterface
     public function down();
 
     /**
-     * Execute SQL statements.
-     *
-     * @param string $statement
-     * @return void
-     */
-    public function execute($statement);
-
-    /**
      * Create new table schema.
      * 
      * @param string $name
