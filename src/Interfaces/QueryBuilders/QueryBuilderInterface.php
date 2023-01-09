@@ -74,7 +74,17 @@ interface QueryBuilderInterface
      * @param array $values
      * @return object
      */
-    public function whereIn($column, $value1s);
+    public function whereIn($column, $values);
+
+    /**
+     * Having statement. 
+     * 
+     * @param string $column
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    public function having($column, $operator, $value);
     
     /**
      * Remove duplicates in result.
@@ -82,45 +92,6 @@ interface QueryBuilderInterface
      * @return object
      */
     public function distinct();
-
-    /**
-     * Count rows in result.
-     * 
-     * @return object
-     */
-    public function count();
-
-    /**
-     * Get the maximum value in a column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    public function max($column);
-    
-    /**
-     * Get the minimum value in a column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    public function min($column);
-    
-    /**
-     * Get the average value in a column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    public function avg($column);
-    
-    /**
-     * Get the total sum of column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    public function sum($column);
     
     /**
      * Limit the number of rows that will be returned by the query

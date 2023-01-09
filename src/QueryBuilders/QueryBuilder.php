@@ -108,7 +108,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function andWhere($column, $operator, $value)
     {
-        $this->statement .= " AND WHERE $column $operator $value ";
+        $this->statement .= " AND $column $operator $value ";
         return $this;
     }
 
@@ -122,7 +122,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function orWhere($column, $operator, $value)
     {
-        $this->statement .= " OR WHERE $column $operator $value ";
+        $this->statement .= " OR $column $operator $value ";
         return $this;
     }
     
@@ -154,6 +154,21 @@ class QueryBuilder implements QueryBuilderInterface
         $this->statement .= " WHERE $column IN ($values) ";
         return $this;
     }
+
+    /**
+     * The equivalent to where statement but with aggregates
+     * and sure you can use aggregates methods in $column.
+     * 
+     * @param string $column
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    final public function having($column, $operator, $value)
+    {
+        $this->statement .= " HAVING $column $operator $value ";
+        return $this;
+    }
     
     /**
      * Remove duplicates in result.
@@ -162,123 +177,15 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function distinct()
     {
-        str_replace("SELECT", "SELECT DISTINCT", $this->statement);
+        $this->statement = str_replace(
+            "SELECT",
+            "SELECT DISTINCT",
+            $this->statement
+        );
+        
         return $this;
     }
 
-    /**
-     * Count rows in result.
-     * 
-     * @return object
-     */
-    final public function count()
-    {
-        if (strpos($this->statement, "*") === false) {
-            throw new \Exception(
-                "Aggregate methods don't work with select fields method"
-            );
-        }
-
-        str_replace("*", "COUNT(*)", $this->statement);
-        return $this;
-    }
-
-    /**
-     * Get the maximum value in a column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    final public function max($column)
-    {
-        if (strpos($this->statement, "*") === false) {
-            throw new \Exception(
-                "Aggregate methods don't work with select fields method"
-            );
-        }
-
-        if (empty($column)) {
-            throw new \InvalidArgumentException(
-                "Max method requires column name"
-            );
-        }
-
-        str_replace("SELECT", "SELECT MAX($column)", $this->statement);
-        return $this;
-    }
-    
-    /**
-     * Get the minimum value in a column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    final public function min($column)
-    {
-        if (strpos($this->statement, "*") === false) {
-            throw new \Exception(
-                "Aggregate methods don't work with select fields method"
-            );
-        }
-
-        if (empty($column)) {
-            throw new \InvalidArgumentException(
-                "Min method requires column name"
-            );
-        }
-
-        str_replace("SELECT", "SELECT MIN($column)", $this->statement);
-        return $this;
-    }
-    
-    /**
-     * Get the average value in a column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    final public function avg($column)
-    {
-        if (strpos($this->statement, "*") === false) {
-            throw new \Exception(
-                "Aggregate methods don't work with select fields method"
-            );
-        }
-
-        if (empty($column)) {
-            throw new \InvalidArgumentException(
-                "Avg method requires column name"
-            );
-        }
-
-        str_replace("SELECT", "SELECT AVG($column)", $this->statement);
-        return $this;
-    }
-    
-    /**
-     * Get the total sum of column.
-     * 
-     * @param string $column
-     * @return object
-     */
-    final public function sum($column)
-    {
-        if (strpos($this->statement, "*") === false) {
-            throw new \Exception(
-                "Aggregate methods don't work with select fields method"
-            );
-        }
-
-        if (empty($column)) {
-            throw new \InvalidArgumentException(
-                "Sum method requires column name"
-            );
-        }
-
-        str_replace("SELECT", "SELECT SUM($column)", $this->statement);
-        return $this;
-    }
-    
     /**
      * Limit the number of rows that will be returned by the query
      * and also i can add an offset to start from.
