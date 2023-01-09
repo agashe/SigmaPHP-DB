@@ -39,18 +39,19 @@ class QueryBuilder implements QueryBuilderInterface
      */
     private function concatenateStrings($strings)
     {
-        return rtrim(implode(',', $strings), ',');
+        return rtrim(implode(",", $strings), ",");
     }
 
     /**
      * Select the table which will be used to perform the query.
      * 
      * @param string $table
-     * @return void
+     * @return object
      */
-    public function table($table)
+    final public function table($table)
     {
         $this->statement = "SELECT * FROM $table";
+        return $this;
     }
     
     /**
@@ -58,9 +59,9 @@ class QueryBuilder implements QueryBuilderInterface
      * set , all fields in the table will be returned (using '*').
      * 
      * @param array $fields
-     * @return void
+     * @return object
      */
-    public function select($fields)
+    final public function select($fields)
     {
         if (empty($fields)) {
             return;
@@ -68,11 +69,17 @@ class QueryBuilder implements QueryBuilderInterface
 
         if (!is_array($fields)) {
             throw new \InvalidArgumentException(
-                'Fields should be of type array'
+                "Fields should be of type array"
             );
         }
 
-        str_replace('*', $this->concatenateStrings($fields), $this->statement);
+        $this->statement = str_replace(
+            "*",
+            $this->concatenateStrings($fields),
+            $this->statement
+        );
+        
+        return $this;
     }
 
     /**
@@ -83,11 +90,12 @@ class QueryBuilder implements QueryBuilderInterface
      * @param string $column
      * @param string $operator
      * @param string $value
-     * @return void
+     * @return object
      */
-    public function where($column, $operator, $value)
+    final public function where($column, $operator, $value)
     {
         $this->statement .= " WHERE $column $operator $value ";
+        return $this;
     }
 
     /**
@@ -96,11 +104,12 @@ class QueryBuilder implements QueryBuilderInterface
      * @param string $column
      * @param string $operator
      * @param string $value
-     * @return void
+     * @return object
      */
-    public function andWhere($column, $operator, $value)
+    final public function andWhere($column, $operator, $value)
     {
         $this->statement .= " AND WHERE $column $operator $value ";
+        return $this;
     }
 
     /**
@@ -109,11 +118,12 @@ class QueryBuilder implements QueryBuilderInterface
      * @param string $column
      * @param string $operator
      * @param string $value
-     * @return void
+     * @return object
      */
-    public function orWhere($column, $operator, $value)
+    final public function orWhere($column, $operator, $value)
     {
         $this->statement .= " OR WHERE $column $operator $value ";
+        return $this;
     }
     
     /**
@@ -122,11 +132,12 @@ class QueryBuilder implements QueryBuilderInterface
      * @param string $column
      * @param string $value1
      * @param string $value2
-     * @return void
+     * @return object
      */
-    public function whereBetween($column, $value1, $value2)
+    final public function whereBetween($column, $value1, $value2)
     {
         $this->statement .= " WHERE $column BETWEEN $value1 AND $value2 ";
+        return $this;
     }
 
     /**
@@ -135,69 +146,138 @@ class QueryBuilder implements QueryBuilderInterface
      * 
      * @param string $column
      * @param array $values
-     * @return void
+     * @return object
      */
-    public function whereIn($column, $values)
+    final public function whereIn($column, $values)
     {
         $values = $this->concatenateStrings($values);
         $this->statement .= " WHERE $column IN ($values) ";
+        return $this;
     }
     
     /**
      * Remove duplicates in result.
      * 
-     * @return void
+     * @return object
      */
-    public function distinct()
+    final public function distinct()
     {
-        str_replace('SELECT ', 'SELECT DISTINCT ', $this->statement);
+        str_replace("SELECT", "SELECT DISTINCT", $this->statement);
+        return $this;
     }
 
     /**
      * Count rows in result.
      * 
-     * @return void
+     * @return object
      */
-    public function count()
+    final public function count()
     {
+        if (strpos($this->statement, "*") === false) {
+            throw new \Exception(
+                "Aggregate methods don't work with select fields method"
+            );
+        }
 
+        str_replace("*", "COUNT(*)", $this->statement);
+        return $this;
     }
 
     /**
      * Get the maximum value in a column.
      * 
      * @param string $column
-     * @return void
+     * @return object
      */
-    public function max($column)
-    {}
+    final public function max($column)
+    {
+        if (strpos($this->statement, "*") === false) {
+            throw new \Exception(
+                "Aggregate methods don't work with select fields method"
+            );
+        }
+
+        if (empty($column)) {
+            throw new \InvalidArgumentException(
+                "Max method requires column name"
+            );
+        }
+
+        str_replace("SELECT", "SELECT MAX($column)", $this->statement);
+        return $this;
+    }
     
     /**
      * Get the minimum value in a column.
      * 
      * @param string $column
-     * @return void
+     * @return object
      */
-    public function min($column)
-    {}
+    final public function min($column)
+    {
+        if (strpos($this->statement, "*") === false) {
+            throw new \Exception(
+                "Aggregate methods don't work with select fields method"
+            );
+        }
+
+        if (empty($column)) {
+            throw new \InvalidArgumentException(
+                "Min method requires column name"
+            );
+        }
+
+        str_replace("SELECT", "SELECT MIN($column)", $this->statement);
+        return $this;
+    }
     
     /**
      * Get the average value in a column.
      * 
      * @param string $column
-     * @return void
+     * @return object
      */
-    public function avg($column)
-    {}
+    final public function avg($column)
+    {
+        if (strpos($this->statement, "*") === false) {
+            throw new \Exception(
+                "Aggregate methods don't work with select fields method"
+            );
+        }
+
+        if (empty($column)) {
+            throw new \InvalidArgumentException(
+                "Avg method requires column name"
+            );
+        }
+
+        str_replace("SELECT", "SELECT AVG($column)", $this->statement);
+        return $this;
+    }
     
     /**
      * Get the total sum of column.
      * 
      * @param string $column
-     * @return void
+     * @return object
      */
-    public function sum($column)
-    {}
+    final public function sum($column)
+    {
+        if (strpos($this->statement, "*") === false) {
+            throw new \Exception(
+                "Aggregate methods don't work with select fields method"
+            );
+        }
+
+        if (empty($column)) {
+            throw new \InvalidArgumentException(
+                "Sum method requires column name"
+            );
+        }
+
+        str_replace("SELECT", "SELECT SUM($column)", $this->statement);
+        return $this;
+    }
     
     /**
      * Limit the number of rows that will be returned by the query
@@ -205,9 +285,9 @@ class QueryBuilder implements QueryBuilderInterface
      * 
      * @param int $count
      * @param int $offset
-     * @return void
+     * @return object
      */
-    public function limit($count, $offset)
+    final public function limit($count, $offset)
     {
         $offsetStatement = '';
         if (!empty($offset) && is_numeric($offset)) {
@@ -215,15 +295,16 @@ class QueryBuilder implements QueryBuilderInterface
         }
 
         $this->statement .= " LIMIT $count $offsetStatement ";
+        return $this;
     }
     
     /**
      * Order the result rows based on some columns.
      * 
      * @param array $columns
-     * @return void
+     * @return object
      */
-    public function orderBy($columns)
+    final public function orderBy($columns)
     {
         $columnsFormatted = '';
         
@@ -234,18 +315,20 @@ class QueryBuilder implements QueryBuilderInterface
 
         $columnsFormatted = rtrim($columnsFormatted, ',');
         $this->statement .= " ORDER BY $columnsFormatted ";
+        return $this;
     }
 
     /**
      * Group the result rows based on some columns.
      * 
      * @param array $columns
-     * @return void
+     * @return object
      */
-    public function groupBy($columns)
+    final public function groupBy($columns)
     {
         $columns = $this->concatenateStrings($columns);
         $this->statement .= " GROUP BY $columns ";
+        return $this;
     }
     
     /**
@@ -254,12 +337,18 @@ class QueryBuilder implements QueryBuilderInterface
      * the selected columns should be the same in both
      * queries in order to get valid result.
      * 
-     * @param void $query the second query to combine with 
+     * @param QueryBuilder $query the second query to combine with 
      * @param bool $all a flag to activate distinct values (by default false)
-     * @return void
+     * @return object
      */
-    public function union($query, $all)
-    {}
+    final public function union($query, $all)
+    {
+        $unionMethod = $all ? "UNION ALL" : "UNION";
+        $queryAsStr = $query->print();
+
+        $this->statement = "({$this->statement}) $unionMethod ($queryAsStr)";
+        return $this;
+    }
 
     /**
      * Join tables ; support 'inner', 'right' and 'left' joins
@@ -272,16 +361,18 @@ class QueryBuilder implements QueryBuilderInterface
      * @param string $operator
      * @param string $column2
      * @param string $type
-     * @return void
+     * @return object
      */
-    public function join(
+    final public function join(
         $table,
         $column1,
         $operator,
         $column2,
-        $type
+        $type = 'inner'
     ) {
-
+        $type = strtoupper($type);
+        $this->statement .= "$type JOIN $table ON $column1 $operator $column2";
+        return $this;
     }
 
     /**
@@ -289,16 +380,20 @@ class QueryBuilder implements QueryBuilderInterface
      * 
      * @return array
      */
-    public function get()
-    {}
+    final public function get()
+    {
+        return $this->fetch($this->statement);
+    }
     
     /**
      * Fetch all rows.
      * 
      * @return array
      */
-    public function getAll()
-    {}
+    final public function getAll()
+    {
+        return $this->fetchAll($this->statement);
+    }
     
     /**
      * Print the query without execution, we can use 
@@ -306,6 +401,8 @@ class QueryBuilder implements QueryBuilderInterface
      * 
      * @return string
      */
-    public function print()
-    {}
+    final public function print()
+    {
+        return "{$this->statement};";
+    }
 }
