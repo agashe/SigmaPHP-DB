@@ -28,7 +28,7 @@ trait DbMethods
     {
         $handler = $this->dbConnection->prepare($query);
         $handler->execute();
-        return $handler->fetch();
+        return $handler->fetch(\PDO::FETCH_ASSOC);
     }
     
     /**
@@ -41,7 +41,7 @@ trait DbMethods
     {
         $handler = $this->dbConnection->prepare($query);
         $handler->execute();
-        return $handler->fetchAll();
+        return $handler->fetchAll(\PDO::FETCH_ASSOC);
     }
     
     /**

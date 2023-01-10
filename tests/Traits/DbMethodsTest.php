@@ -170,7 +170,7 @@ class DbMethodsTest extends TestCase
             SELECT * FROM test;
         ");
 
-        $this->assertEquals(6, count($result));
+        $this->assertEquals(3, count($result));
     }
 
     /**

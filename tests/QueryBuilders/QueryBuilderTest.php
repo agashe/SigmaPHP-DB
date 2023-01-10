@@ -216,10 +216,10 @@ class QueryBuilderTest extends TestCase
         );
         
         $this->assertEquals(
-            'SELECT * FROM test WHERE name like %abc;', 
+            "SELECT * FROM test WHERE name like '%abc';", 
             $this->queryBuilder
                 ->table('test')
-                ->where('name', 'like', '%abc')
+                ->where('name', 'like', "%abc")
                 ->print()
         );
 
@@ -422,15 +422,17 @@ class QueryBuilderTest extends TestCase
      */
     public function testUnionStatement()
     {
-        $query = $this->queryBuilder
-            ->table('test1')
-            ->select(['name'])
-            ->print();
+        $connector = new Connector();
+        $queryBuilder2 = new QueryBuilder(
+            $connector->connect($this->dbConfigs)
+        );
+
+        $query = $queryBuilder2->table('test2')->select(['name']);
 
         $this->assertEquals(
             '(SELECT name FROM test1) UNION ALL (SELECT name FROM test2);', 
             $this->queryBuilder
-                ->table('test2')
+                ->table('test1')
                 ->select(['name'])
                 ->union($query, true)
                 ->print()
@@ -465,7 +467,43 @@ class QueryBuilderTest extends TestCase
      * @return void
      */
     public function testGetMethod()
-    {}
+    {
+        $this->createTestTable();
+
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO test
+                (name,email,age)
+            VALUES
+                ('test1', 'test1@testing.com', 15), 
+                ('test2', 'test2@testing.com', 25), 
+                ('test3', 'test3@testing.com', 35);
+        ");
+
+        $addTestData->execute();
+
+        $query = $this->queryBuilder
+            ->table('test')
+            ->select(['age as a'])
+            ->get();
+            
+        $this->assertEquals('15', $query['a']);
+
+        $query = $this->queryBuilder
+            ->table('test')
+            ->where('name', '=', 'test1')
+            ->get();
+            
+        $this->assertEquals('test1', $query['name']);
+
+        $query = $this->queryBuilder
+            ->table('test')
+            ->whereIn('name', ['test1', 'test3'])
+            ->get();
+            
+        $this->assertEquals('test1', $query['name']);
+
+        $this->dropTestTable();
+    }
     
     /**
      * Test get all method.
@@ -474,7 +512,29 @@ class QueryBuilderTest extends TestCase
      * @return void
      */
     public function testGetAllMethod()
-    {}
+    {
+        $this->createTestTable();
+
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO test
+                (name,email,age)
+            VALUES
+                ('test1', 'test1@testing.com', 15), 
+                ('test2', 'test2@testing.com', 25), 
+                ('test3', 'test3@testing.com', 35);
+        ");
+
+        $addTestData->execute();
+
+        $query = $this->queryBuilder
+            ->table('test')
+            ->where('name', 'not like', '%test1%')
+            ->getAll();
+            
+        $this->assertEquals(2, count($query));
+
+        $this->dropTestTable();
+    }
 
     /**
      * Test print query method.

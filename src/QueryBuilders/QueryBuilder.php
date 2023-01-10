@@ -43,6 +43,20 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
+     * Add quotes for string values. 
+     * 
+     * @param string $value
+     * @return string
+     */
+    private function addQuotes($value)
+    {
+        // escape if the input contains mysql built-in functions
+        // like date , now ...etc or it's a numeric value
+        return ((strpos($value, '(') !== false) || is_numeric($value) ||
+            $value == 'null') ? $value : "'$value'";
+    }
+
+    /**
      * Select the table which will be used to perform the query.
      * 
      * @param string $table
@@ -94,6 +108,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function where($column, $operator, $value)
     {
+        $value = $this->addQuotes($value);
         $this->statement .= " WHERE $column $operator $value ";
         return $this;
     }
@@ -108,6 +123,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function andWhere($column, $operator, $value)
     {
+        $value = $this->addQuotes($value);
         $this->statement .= " AND $column $operator $value ";
         return $this;
     }
@@ -122,6 +138,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function orWhere($column, $operator, $value)
     {
+        $value = $this->addQuotes($value);
         $this->statement .= " OR $column $operator $value ";
         return $this;
     }
@@ -136,6 +153,9 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function whereBetween($column, $value1, $value2)
     {
+        $value1 = $this->addQuotes($value1);
+        $value2 = $this->addQuotes($value2);
+
         $this->statement .= " WHERE $column BETWEEN $value1 AND $value2 ";
         return $this;
     }
@@ -150,8 +170,14 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function whereIn($column, $values)
     {
-        $values = $this->concatenateStrings($values);
-        $this->statement .= " WHERE $column IN ($values) ";
+        $valuesStr = '';
+        foreach ($values as $value) {
+            $valuesStr .= $this->addQuotes($value) . ",";
+        }
+
+        $valuesStr = rtrim($valuesStr, ",");
+
+        $this->statement .= " WHERE $column IN ($valuesStr) ";
         return $this;
     }
 
@@ -166,6 +192,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function having($column, $operator, $value)
     {
+        $value = $this->addQuotes($value);
         $this->statement .= " HAVING $column $operator $value ";
         return $this;
     }
