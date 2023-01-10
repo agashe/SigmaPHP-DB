@@ -194,7 +194,7 @@ class QueryBuilder implements QueryBuilderInterface
      * @param int $offset
      * @return object
      */
-    final public function limit($count, $offset)
+    final public function limit($count, $offset = '')
     {
         $offsetStatement = '';
         if (!empty($offset) && is_numeric($offset)) {
@@ -213,15 +213,8 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function orderBy($columns)
     {
-        $columnsFormatted = '';
-        
-        foreach ($columns as $key => $value) {
-            $value = strtoupper($value);
-            $columnsFormatted .= "$key $value,";
-        }
-
-        $columnsFormatted = rtrim($columnsFormatted, ',');
-        $this->statement .= " ORDER BY $columnsFormatted ";
+        $columns = $this->concatenateStrings($columns);
+        $this->statement .= " ORDER BY $columns ";
         return $this;
     }
 
@@ -251,7 +244,7 @@ class QueryBuilder implements QueryBuilderInterface
     final public function union($query, $all)
     {
         $unionMethod = $all ? "UNION ALL" : "UNION";
-        $queryAsStr = $query->print();
+        $queryAsStr = rtrim($query->print(), ';');
 
         $this->statement = "({$this->statement}) $unionMethod ($queryAsStr)";
         return $this;
@@ -278,7 +271,7 @@ class QueryBuilder implements QueryBuilderInterface
         $type = 'inner'
     ) {
         $type = strtoupper($type);
-        $this->statement .= "$type JOIN $table ON $column1 $operator $column2";
+        $this->statement .= " $type JOIN $table ON $column1 $operator $column2";
         return $this;
     }
 
@@ -289,7 +282,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function get()
     {
-        return $this->fetch($this->statement);
+        return $this->fetch(rtrim($this->statement) . ";");
     }
     
     /**
@@ -299,7 +292,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function getAll()
     {
-        return $this->fetchAll($this->statement);
+        return $this->fetchAll(rtrim($this->statement) . ";");
     }
     
     /**
@@ -310,6 +303,6 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function print()
     {
-        return "{$this->statement};";
+        return rtrim($this->statement) . ";";
     }
 }

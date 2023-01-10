@@ -200,7 +200,7 @@ class QueryBuilderTest extends TestCase
     public function testWhereConditions()
     {
         $this->assertEquals(
-            'SELECT * FROM test WHERE id = 5 ;', 
+            'SELECT * FROM test WHERE id = 5;', 
             $this->queryBuilder
                 ->table('test')
                 ->where('id', '=', 5)
@@ -208,7 +208,7 @@ class QueryBuilderTest extends TestCase
         );
         
         $this->assertEquals(
-            'SELECT * FROM test WHERE age >= 15 ;', 
+            'SELECT * FROM test WHERE age >= 15;', 
             $this->queryBuilder
                 ->table('test')
                 ->where('age', '>=', 15)
@@ -216,7 +216,7 @@ class QueryBuilderTest extends TestCase
         );
         
         $this->assertEquals(
-            'SELECT * FROM test WHERE name like %abc ;', 
+            'SELECT * FROM test WHERE name like %abc;', 
             $this->queryBuilder
                 ->table('test')
                 ->where('name', 'like', '%abc')
@@ -224,7 +224,7 @@ class QueryBuilderTest extends TestCase
         );
 
         $this->assertEquals(
-            'SELECT * FROM test WHERE email is not null ;', 
+            'SELECT * FROM test WHERE email is not null;', 
             $this->queryBuilder
                 ->table('test')
                 ->where('email', 'is not', 'null')
@@ -232,7 +232,7 @@ class QueryBuilderTest extends TestCase
         );
 
         $this->assertEquals(
-            'SELECT * FROM test WHERE date(created_at) = date(now()) ;', 
+            'SELECT * FROM test WHERE date(created_at) = date(now());', 
             $this->queryBuilder
                 ->table('test')
                 ->where('date(created_at)', '=', 'date(now())')
@@ -249,7 +249,7 @@ class QueryBuilderTest extends TestCase
     public function testAndWhereStatement()
     {
         $this->assertEquals(
-            'SELECT * FROM test WHERE id > 10  AND age < 20 ;', 
+            'SELECT * FROM test WHERE id > 10  AND age < 20;', 
             $this->queryBuilder
                 ->table('test')
                 ->where('id', '>', 10)
@@ -267,7 +267,7 @@ class QueryBuilderTest extends TestCase
     public function testOrWhereStatement()
     {
         $this->assertEquals(
-            'SELECT * FROM test WHERE id > 10  OR age < 20 ;', 
+            'SELECT * FROM test WHERE id > 10  OR age < 20;', 
             $this->queryBuilder
                 ->table('test')
                 ->where('id', '>', 10)
@@ -285,7 +285,7 @@ class QueryBuilderTest extends TestCase
     public function testWhereBetweenStatement()
     {
         $this->assertEquals(
-            'SELECT * FROM test WHERE age BETWEEN 5 AND 10 ;', 
+            'SELECT * FROM test WHERE age BETWEEN 5 AND 10;', 
             $this->queryBuilder
                 ->table('test')
                 ->whereBetween('age', 5, 10)
@@ -302,7 +302,7 @@ class QueryBuilderTest extends TestCase
     public function testWhereInStatement()
     {
         $this->assertEquals(
-            'SELECT * FROM test WHERE age IN (5,10,15) ;', 
+            'SELECT * FROM test WHERE age IN (5,10,15);', 
             $this->queryBuilder
                 ->table('test')
                 ->wherein('age', [5, 10, 15])
@@ -319,7 +319,7 @@ class QueryBuilderTest extends TestCase
     public function testHavingStatement()
     {
         $this->assertEquals(
-            'SELECT avg(age) as avg_age FROM test HAVING avg(age) > 10 ;', 
+            'SELECT avg(age) as avg_age FROM test HAVING avg(age) > 10;', 
             $this->queryBuilder
                 ->table('test')
                 ->select(['avg(age) as avg_age'])
@@ -344,5 +344,150 @@ class QueryBuilderTest extends TestCase
                 ->distinct()
                 ->print()
         );
+    }
+    
+    /**
+     * Test limit statement.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testLimitStatement()
+    {
+        $this->assertEquals(
+            'SELECT * FROM test LIMIT 10;', 
+            $this->queryBuilder
+                ->table('test')
+                ->limit(10)
+                ->print()
+        );
+    }
+
+    /**
+     * Test offset statement.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testOffsetStatement()
+    {
+        $this->assertEquals(
+            'SELECT * FROM test LIMIT 10 OFFSET 5;', 
+            $this->queryBuilder
+                ->table('test')
+                ->limit(10, 5)
+                ->print()
+        );
+    }
+    
+    /**
+     * Test order by statement.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testOrderByStatement()
+    {
+        $this->assertEquals(
+            'SELECT * FROM test ORDER BY name asc;', 
+            $this->queryBuilder
+                ->table('test')
+                ->orderBy(['name asc'])
+                ->print()
+        );
+    }
+
+    /**
+     * Test group by statement.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testGroupByStatement()
+    {
+        $this->assertEquals(
+            'SELECT * FROM test GROUP BY name,age;', 
+            $this->queryBuilder
+                ->table('test')
+                ->groupBy(['name', 'age'])
+                ->print()
+        );
+    }
+    
+    /**
+     * Test union statement.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testUnionStatement()
+    {
+        $query = $this->queryBuilder
+            ->table('test1')
+            ->select(['name'])
+            ->print();
+
+        $this->assertEquals(
+            '(SELECT name FROM test1) UNION ALL (SELECT name FROM test2);', 
+            $this->queryBuilder
+                ->table('test2')
+                ->select(['name'])
+                ->union($query, true)
+                ->print()
+        );
+    }
+    
+    /**
+     * Test join statement.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testJoinStatement()
+    {
+        $validJoinQuery = 'SELECT t1.name,t2.age FROM test1 as t1';
+        $validJoinQuery .= ' CROSS JOIN test2 as t2 ON t1.id = t2.id;';
+                 
+        $this->assertEquals(
+            $validJoinQuery, 
+            $this->queryBuilder
+                ->table('test1 as t1')
+                ->select(['t1.name', 't2.age'])
+                ->join('test2 as t2', 't1.id', '=', 't2.id', 'cross')
+                ->print()
+        );
+    }
+
+    /**
+     * Test get method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testGetMethod()
+    {}
+    
+    /**
+     * Test get all method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testGetAllMethod()
+    {}
+
+    /**
+     * Test print query method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testPrintQueryMethod()
+    {
+        echo $this->queryBuilder
+            ->table('test')
+            ->print();
+
+        $this->expectOutputString('SELECT * FROM test;');
     }
 }
