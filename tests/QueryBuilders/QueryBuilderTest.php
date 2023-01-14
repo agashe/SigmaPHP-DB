@@ -1,20 +1,13 @@
 <?php 
 
-use PHPUnit\Framework\TestCase;
-
+use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\QueryBuilders\QueryBuilder;
-use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * QueryBuilder Test
  */
-class QueryBuilderTest extends TestCase
-{
-    /**
-     * @var array $dbConfigs
-     */
-    private $dbConfigs;
-    
+class QueryBuilderTest extends DbTestCase
+{    
     /**
      * @var QueryBuilder $queryBuilder
      */
@@ -27,85 +20,14 @@ class QueryBuilderTest extends TestCase
      */
     public function setUp(): void
     {
-        // add your database configs to phpunit.xml
-        $this->dbConfigs = [
-            'host' => $GLOBALS['DB_HOST'],
-            'name' => $GLOBALS['DB_NAME'],
-            'user' => $GLOBALS['DB_USER'],
-            'pass' => $GLOBALS['DB_PASS'],
-            'port' => $GLOBALS['DB_PORT']
-        ];
-
-        // create test table
-        $this->createTestTable();
+        parent::setUp();
         
         // create new QueryBuilder instance
-        $connector = new Connector();
         $this->queryBuilder = new QueryBuilder(
-            $connector->connect($this->dbConfigs)
+            $this->connectToDatabase()
         );
     }
     
-    /**
-     * SeederTest TearDown
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        $this->dropTestTable();
-    }
-    
-    /**
-     * Connect to database.
-     * 
-     * @return \PDO
-     */
-    private function connectToDatabase()
-    {
-        return new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
-        );
-    }
-
-    /**
-     * Create test table.
-     *
-     * @param string $name
-     * @return void
-     */
-    private function createTestTable($name = 'test')
-    {
-        $testTable = $this->connectToDatabase()->prepare("
-            CREATE TABLE IF NOT EXISTS {$name} (
-                id INT(11) AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(25) NOT NULL,
-                email VARCHAR(50) NOT NULL,
-                age INT UNSIGNED
-            );
-        ");
-
-        $testTable->execute();
-    }
-
-    /**
-     * Drop test table.
-     *
-     * @param string $name
-     * @return void
-     */
-    private function dropTestTable($name = 'test')
-    {
-        $testTable = $this->connectToDatabase()->prepare("
-            DROP TABLE IF EXISTS {$name};
-        ");
-
-        $testTable->execute();
-    }
-
     /**
      * Test table method.
      *
@@ -422,9 +344,8 @@ class QueryBuilderTest extends TestCase
      */
     public function testUnionStatement()
     {
-        $connector = new Connector();
         $queryBuilder2 = new QueryBuilder(
-            $connector->connect($this->dbConfigs)
+            $this->connectToDatabase()
         );
 
         $query = $queryBuilder2->table('test2')->select(['name']);
@@ -487,6 +408,13 @@ class QueryBuilderTest extends TestCase
             ->get();
             
         $this->assertEquals('15', $query['a']);
+
+        $query = $this->queryBuilder
+            ->table('test')
+            ->select(['sum(age) as total_age'])
+            ->get();
+            
+        $this->assertEquals('75', $query['total_age']);
 
         $query = $this->queryBuilder
             ->table('test')

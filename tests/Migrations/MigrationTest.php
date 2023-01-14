@@ -1,20 +1,13 @@
 <?php 
 
-use PHPUnit\Framework\TestCase;
-
+use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\Migrations\Migration;
-use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * Migration Test
  */
-class MigrationTest extends TestCase
-{
-    /**
-     * @var array $dbConfigs
-     */
-    private $dbConfigs;
-    
+class MigrationTest extends DbTestCase
+{    
     /**
      * @var Migration $migration
      */
@@ -27,133 +20,15 @@ class MigrationTest extends TestCase
      */
     public function setUp(): void
     {
-        // add your database configs to phpunit.xml
-        $this->dbConfigs = [
-            'host' => $GLOBALS['DB_HOST'],
-            'name' => $GLOBALS['DB_NAME'],
-            'user' => $GLOBALS['DB_USER'],
-            'pass' => $GLOBALS['DB_PASS'],
-            'port' => $GLOBALS['DB_PORT']
-        ];
-
-        // create test table
-        $this->createTestTable();
+        parent::setUp();
         
         // create new migration instance
-        $connector = new Connector();
         $this->migration = new Migration(
-            $connector->connect($this->dbConfigs),
+            $this->connectToDatabase(),
             $this->dbConfigs['name']
         );
     }
     
-    /**
-     * MigrationTest TearDown
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        $this->dropTestTable();
-    }
-    
-    /**
-     * Connect to database.
-     * 
-     * @return \PDO
-     */
-    private function connectToDatabase()
-    {
-        return new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
-        );
-    }
-
-    /**
-     * Create test table.
-     *
-     * @param string $name
-     * @return void
-     */
-    private function createTestTable($name = 'test')
-    {
-        $testTable = $this->connectToDatabase()->prepare("
-            CREATE TABLE IF NOT EXISTS {$name} (
-                id INT(11) AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(25) NOT NULL,
-                email VARCHAR(50) NOT NULL
-            );
-        ");
-
-        $testTable->execute();
-    }
-
-    /**
-     * Drop test table.
-     *
-     * @param string $name
-     * @return void
-     */
-    private function dropTestTable($name = 'test')
-    {
-        $testTable = $this->connectToDatabase()->prepare("
-            DROP TABLE IF EXISTS {$name};
-        ");
-
-        $testTable->execute();
-    }
-
-    /**
-     * Check if table exists.
-     *
-     * @param string $table
-     * @return bool
-     */
-    private function checkTableExists($table)
-    {
-        $tableExists = $this->connectToDatabase()->prepare("
-            SELECT
-                TABLE_NAME
-            FROM 
-                INFORMATION_SCHEMA.TABLES
-            WHERE 
-                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
-            AND
-                TABLE_NAME = '{$table}'
-        ");
-
-        $tableExists->execute();
-        return ($tableExists->fetch() != false);
-    }
-
-    /**
-     * Get table fields.
-     *
-     * @param string $table
-     * @return array
-     */
-    private function getTableFields($table)
-    {
-        $tableFields = $this->connectToDatabase()->prepare("
-            SELECT
-                GROUP_CONCAT(COLUMN_NAME) AS FIELDS
-            FROM 
-                INFORMATION_SCHEMA.COLUMNS
-            WHERE 
-                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
-            AND
-                TABLE_NAME = '{$table}'
-        ");
-
-        $tableFields->execute();
-        $fields = explode(',', $tableFields->fetchAll()[0]['FIELDS']);
-
-        return array_values($fields);
-    }
-
     /**
      * Test create table.
      *
@@ -289,7 +164,7 @@ class MigrationTest extends TestCase
             ]
         );
 
-        $this->assertEquals(4, count($this->getTableFields('test')));
+        $this->assertEquals(5, count($this->getTableFields('test')));
 
         $this->dropTestTable();
     }
@@ -378,7 +253,7 @@ class MigrationTest extends TestCase
     public function testDropColumnFromTable()
     {
         $this->migration->dropColumn('test', 'email');
-        $this->assertEquals(2, count($this->getTableFields('test')));
+        $this->assertEquals(3, count($this->getTableFields('test')));
     }
 
     /**

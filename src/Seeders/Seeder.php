@@ -73,7 +73,7 @@ class Seeder implements SeederInterface
      * @param array $search
      * @return void
      */
-    final public function update($table, $data, $search = '')
+    final public function update($table, $data, $search = [])
     {
         $updateStatement = "UPDATE $table SET ";
 
@@ -101,7 +101,7 @@ class Seeder implements SeederInterface
      * @param array $search
      * @return void
      */
-    final public function delete($table, $search = '')
+    final public function delete($table, $search = [])
     {
         $condition = 1;
         

@@ -1,24 +1,17 @@
 <?php 
 
-use PHPUnit\Framework\TestCase;
-
+use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\Migrations\Logger;
-use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * Logger Test
  */
-class LoggerTest extends TestCase
+class LoggerTest extends DbTestCase
 {
     /**
      * @var string $testLogsTable
      */
     private $testLogsTable;
-
-    /**
-     * @var array $dbConfigs
-     */
-    private $dbConfigs;
     
     /**
      * @var Logger $logger
@@ -32,37 +25,15 @@ class LoggerTest extends TestCase
      */
     public function setUp(): void
     {
-        // add your database configs to phpunit.xml
-        $this->dbConfigs = [
-            'host' => $GLOBALS['DB_HOST'],
-            'name' => $GLOBALS['DB_NAME'],
-            'user' => $GLOBALS['DB_USER'],
-            'pass' => $GLOBALS['DB_PASS'],
-            'port' => $GLOBALS['DB_PORT']
-        ];
+        parent::setUp();
 
+        // set logs table name
         $this->testLogsTable = 'db_logs_test';
 
         // create new logger instance
-        $connector = new Connector();
         $this->logger = new Logger(
-            $connector->connect($this->dbConfigs),
+            $this->connectToDatabase(),
             $this->testLogsTable
-        );
-    }
-
-    /**
-     * Connect to database.
-     * 
-     * @return \PDO
-     */
-    private function connectToDatabase()
-    {
-        return new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
         );
     }
 

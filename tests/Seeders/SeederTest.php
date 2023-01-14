@@ -1,20 +1,13 @@
 <?php 
 
-use PHPUnit\Framework\TestCase;
-
+use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\Seeders\Seeder;
-use SigmaPHP\DB\Connectors\Connector;
 
 /**
  * Seeder Test
  */
-class SeederTest extends TestCase
-{
-    /**
-     * @var array $dbConfigs
-     */
-    private $dbConfigs;
-    
+class SeederTest extends DbTestCase
+{    
     /**
      * @var Seeder $seeder
      */
@@ -27,82 +20,12 @@ class SeederTest extends TestCase
      */
     public function setUp(): void
     {
-        // add your database configs to phpunit.xml
-        $this->dbConfigs = [
-            'host' => $GLOBALS['DB_HOST'],
-            'name' => $GLOBALS['DB_NAME'],
-            'user' => $GLOBALS['DB_USER'],
-            'pass' => $GLOBALS['DB_PASS'],
-            'port' => $GLOBALS['DB_PORT']
-        ];
+        parent::setUp();
 
-        // create test table
-        $this->createTestTable();
-        
         // create new seeder instance
-        $connector = new Connector();
         $this->seeder = new Seeder(
-            $connector->connect($this->dbConfigs)
+            $this->connectToDatabase()
         );
-    }
-    
-    /**
-     * SeederTest TearDown
-     *
-     * @return void
-     */
-    public function tearDown(): void
-    {
-        $this->dropTestTable();
-    }
-    
-    /**
-     * Connect to database.
-     * 
-     * @return \PDO
-     */
-    private function connectToDatabase()
-    {
-        return new \PDO(
-            "mysql:host={$this->dbConfigs['host']};
-            dbname={$this->dbConfigs['name']}",
-            $this->dbConfigs['user'],
-            $this->dbConfigs['pass']
-        );
-    }
-
-    /**
-     * Create test table.
-     *
-     * @param string $name
-     * @return void
-     */
-    private function createTestTable($name = 'test')
-    {
-        $testTable = $this->connectToDatabase()->prepare("
-            CREATE TABLE IF NOT EXISTS {$name} (
-                id INT(11) AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(25) NOT NULL,
-                email VARCHAR(50) NOT NULL
-            );
-        ");
-
-        $testTable->execute();
-    }
-
-    /**
-     * Drop test table.
-     *
-     * @param string $name
-     * @return void
-     */
-    private function dropTestTable($name = 'test')
-    {
-        $testTable = $this->connectToDatabase()->prepare("
-            DROP TABLE IF EXISTS {$name};
-        ");
-
-        $testTable->execute();
     }
     
     /**
