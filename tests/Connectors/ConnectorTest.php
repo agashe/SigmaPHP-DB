@@ -36,7 +36,7 @@ class ConnectorTest extends TestCase
         ];
         
         // create new connector
-        $this->connector = new Connector();
+        $this->connector = new Connector($this->dbConfigs);
     }
 
     /**
@@ -49,9 +49,23 @@ class ConnectorTest extends TestCase
     {
         $this->assertInstanceOf(
             \PDO::class,
-            $this->connector->connect(
-                $this->dbConfigs
-            )
+            $this->connector->connect()
+        );
+    }
+
+    /**
+     * Test connector returns database name.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testConnectorReturnsDatabaseName()
+    {
+        $this->dbConfigs['name'] = 'db_test';
+
+        $this->assertEquals(
+            'db_test',
+            $this->connector->getDatabaseName()
         );
     }
 }

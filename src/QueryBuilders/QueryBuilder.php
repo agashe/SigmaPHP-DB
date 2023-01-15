@@ -14,7 +14,7 @@ class QueryBuilder implements QueryBuilderInterface
     use DbMethods;
 
     /**
-     * @var Connector $dbConnection
+     * @var \PDO $dbConnection
      */
     private $dbConnection;
 

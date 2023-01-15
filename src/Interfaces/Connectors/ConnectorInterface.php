@@ -10,8 +10,14 @@ interface ConnectorInterface
     /**
      * Create new PDO connection.
      * 
-     * @param array $configs 
      * @return \PDO
      */
-    public function connect($configs);
+    public function connect();
+
+    /**
+     * Get the database name.
+     * 
+     * @return string
+     */
+    public function getDatabaseName();
 }

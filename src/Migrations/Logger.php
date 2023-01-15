@@ -14,7 +14,7 @@ class Logger implements LoggerInterface
     use DbMethods;
     
     /**
-     * @var Connector $dbConnection
+     * @var \PDO $dbConnection
      */
     private $dbConnection;
 
@@ -30,7 +30,6 @@ class Logger implements LoggerInterface
     {
         $this->dbConnection = $dbConnection;
         $this->logsTable = $logsTable;
-
         $this->createLogsTable();
     }
 

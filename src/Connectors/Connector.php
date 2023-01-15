@@ -10,19 +10,41 @@ use SigmaPHP\DB\Interfaces\Connectors\ConnectorInterface;
 class Connector implements ConnectorInterface
 {
     /**
+     * @var array $configs
+     */
+    private $configs;
+
+    /**
+     * Connector Constructor
+     */
+    public function __construct($configs)
+    {
+        $this->configs = $configs;
+    }
+
+    /**
      * Create new PDO connection.
      * 
-     * @param array $configs 
      * @return \PDO
      */
-    public function connect($configs)
+    final public function connect()
     {
         return new \PDO(
-            "mysql:host={$configs['host']};
-            dbname={$configs['name']};
-            port={$configs['port']}",
-            $configs['user'],
-            $configs['pass']
+            "mysql:host={$this->configs['host']};
+            dbname={$this->configs['name']};
+            port={$this->configs['port']}",
+            $this->configs['user'],
+            $this->configs['pass']
         );
+    }
+
+    /**
+     * Get the database name.
+     * 
+     * @return string
+     */
+    final public function getDatabaseName()
+    {
+        return $this->configs['name'];
     }
 }

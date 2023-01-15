@@ -14,7 +14,7 @@ class Seeder implements SeederInterface
     use DbMethods;
 
     /**
-     * @var Connector $dbConnection
+     * @var \PDO $dbConnection
      */
     private $dbConnection;
     

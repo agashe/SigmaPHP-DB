@@ -2,6 +2,7 @@
 
 namespace SigmaPHP\DB\Console;
 
+use Exception;
 use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
 use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Migrations\Logger;
@@ -27,7 +28,7 @@ class ConsoleManager implements ConsoleManagerInterface
     private $basePath;
 
     /**
-     * @var Connector $dbConnection
+     * @var Connector $dbConnector
      */
     private $dbConnector;
 
@@ -37,7 +38,6 @@ class ConsoleManager implements ConsoleManagerInterface
     public function __construct()
     {
         $this->basePath = dirname(__DIR__, 2);
-        $this->dbConnector = new Connector();
     }
 
     /**
@@ -94,6 +94,31 @@ class ConsoleManager implements ConsoleManagerInterface
                 $this->commandNotFound();
                 break;
         }
+    }
+
+    /**
+     * Get database connection instance (PDO) 
+     * or create new one if it's not found.
+     *
+     * @return \PDO
+     */
+    private function getDbConnection()
+    {
+        if (!isset($this->configs['database_connection']) ||
+            empty($this->configs['database_connection'])
+        ) {
+            throw new Exception(
+                'Couldn\'t connect to the DB , no configs were provided!'
+            );
+        }
+
+        if (!($this->dbConnector instanceof Connector)) {
+            $this->dbConnector = new Connector(
+                $this->configs['database_connection']
+            );
+        }
+
+        return $this->dbConnector->connect();
     }
 
     /**
@@ -329,9 +354,7 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         $migrations = [];
         $logger = new Logger(
-            $this->dbConnector->connect(
-                $this->configs['database_connection']
-            ),
+            $this->getDbConnection(),
             $this->configs['logs_table_name']
         );
 
@@ -373,10 +396,8 @@ class ConsoleManager implements ConsoleManagerInterface
                 '/' . $migration . '.php';
             
             $migrationClass = new $migration(
-                $this->dbConnector->connect(
-                    $this->configs['database_connection']
-                ),
-                $this->configs['database_connection']['name']
+                $this->getDbConnection(),
+                $this->dbConnector->getDatabaseName()
             );
             
             $migrationClass->up();
@@ -397,9 +418,7 @@ class ConsoleManager implements ConsoleManagerInterface
     private function rollback()
     {
         $logger = new Logger(
-            $this->dbConnector->connect(
-                $this->configs['database_connection']
-            ),
+            $this->getDbConnection(),
             $this->configs['logs_table_name']
         );
 
@@ -408,9 +427,7 @@ class ConsoleManager implements ConsoleManagerInterface
                 '/' . $migration . '.php';
             
             $migrationClass = new $migration(
-                $this->dbConnector->connect(
-                    $this->configs['database_connection']
-                ),
+                $this->getDbConnection(),
                 $this->configs['database_connection']['name']
             );
             
@@ -455,9 +472,7 @@ class ConsoleManager implements ConsoleManagerInterface
                 '/' . $seeder . '.php';
 
             $seed = new $seeder(
-                $this->dbConnector->connect(
-                    $this->configs['database_connection']
-                )
+                $this->getDbConnection()
             );
 
             $seed->run();

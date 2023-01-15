@@ -14,7 +14,7 @@ class Migration implements MigrationInterface
     use DbMethods;
 
     /**
-     * @var Connector $dbConnection
+     * @var \PDO $dbConnection
      */
     private $dbConnection;
 
