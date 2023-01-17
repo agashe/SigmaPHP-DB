@@ -3,7 +3,6 @@
 namespace SigmaPHP\DB\QueryBuilders;
 
 use SigmaPHP\DB\Interfaces\QueryBuilders\QueryBuilderInterface;
-use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Traits\DbMethods;
 
 /**
@@ -50,7 +49,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     private function addQuotes($value)
     {
-        // escape if the input contains mysql built-in functions
+        // escape if the input null , contains mysql built-in functions
         // like date , now ...etc or it's a numeric value
         return ((strpos($value, '(') !== false) || is_numeric($value) ||
             $value == 'null') ? $value : "'$value'";

@@ -3,7 +3,6 @@
 namespace SigmaPHP\DB\Seeders;
 
 use SigmaPHP\DB\Interfaces\Seeders\SeederInterface;
-use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Traits\DbMethods;
 
 /**

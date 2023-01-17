@@ -3,7 +3,6 @@
 namespace SigmaPHP\DB\Migrations;
 
 use SigmaPHP\DB\Interfaces\Migrations\LoggerInterface;
-use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Traits\DbMethods;
 
 /**
