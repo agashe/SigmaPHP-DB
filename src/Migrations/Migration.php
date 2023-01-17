@@ -244,16 +244,7 @@ class Migration implements MigrationInterface
      */
     final public function checkTable($name)
     {
-        return (bool) $this->execute("
-            SELECT
-                TABLE_NAME
-            FROM 
-                INFORMATION_SCHEMA.TABLES
-            WHERE 
-                TABLE_SCHEMA = '{$this->dbName}'
-            AND
-                TABLE_NAME = '{$name}';
-        ");
+        return $this->tableExists($this->dbName, $name);
     }
 
     /**

@@ -108,8 +108,7 @@ class MigrationTest extends DbTestCase
      */
     public function testCheckTable()
     {
-        $this->assertTrue($this->migration
-            ->checkTable('test'));
+        $this->assertTrue($this->migration->checkTable('test'));
     }
 
     /**

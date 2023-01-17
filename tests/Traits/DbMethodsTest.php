@@ -89,7 +89,7 @@ class DbMethodsTest extends DbTestCase
             SELECT * FROM test;
         ");
 
-        $this->assertEquals(3, count($result));
+        $this->assertEquals(4, count($result));
     }
 
     /**
@@ -142,5 +142,18 @@ class DbMethodsTest extends DbTestCase
         ", 0);
 
         $this->assertEquals(3, count($result));
+    }
+
+    /*
+     * Test table exists.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testTableExists()
+    {
+        $this->assertTrue($this->testTrait->tableExists(
+            $this->dbConfigs['name'], 'test'
+        ));
     }
 }

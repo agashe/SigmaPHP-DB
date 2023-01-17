@@ -59,7 +59,7 @@ class Model implements ModelInterface
         }
 
         // check if table exists
-        if (!$this->checkTableExists($this->dbName)) {
+        if (!$this->tableExists($this->dbName, $this->table)) {
             throw new \Exception(
                 "Error : table {$this->table} doesn't exist"
             );
@@ -91,25 +91,6 @@ class Model implements ModelInterface
 
         $inflector = InflectorFactory::create()->build();
         return $inflector->pluralize($inflector->tableize($tableName));
-    }
-
-    /**
-     * Check if table exists.
-     *
-     * @return bool
-     */
-    protected function checkTableExists()
-    {
-        return (bool) $this->fetch("
-            SELECT
-                TABLE_NAME
-            FROM 
-                INFORMATION_SCHEMA.TABLES
-            WHERE 
-                TABLE_SCHEMA = '{$this->dbName}'
-            AND
-                TABLE_NAME = '{$this->table}'
-        ");
     }
 
     /**

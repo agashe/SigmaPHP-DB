@@ -57,4 +57,25 @@ trait DbMethods
         $handler->execute();
         return $handler->fetchAll(\PDO::FETCH_COLUMN, $columnId);
     }
+
+    /**
+     * Check if table exists. 
+     *
+     * @param string $dbName
+     * @param string $tableName
+     * @return array
+     */
+    public function tableExists($dbName, $tableName)
+    {
+        return (bool) $this->fetch("
+            SELECT
+                TABLE_NAME
+            FROM 
+                INFORMATION_SCHEMA.TABLES
+            WHERE 
+                TABLE_SCHEMA = '{$dbName}'
+            AND
+                TABLE_NAME = '{$tableName}';
+        ");
+    }
 }
