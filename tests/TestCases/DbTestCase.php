@@ -15,7 +15,7 @@ class DbTestCase extends TestCase
     protected $dbConfigs;
     
     /**
-     * SeederTest SetUp
+     * DbTestCase SetUp
      *
      * @return void
      */
@@ -35,7 +35,7 @@ class DbTestCase extends TestCase
     }
     
     /**
-     * SeederTest TearDown
+     * DbTestCase TearDown
      *
      * @return void
      */
@@ -128,9 +128,9 @@ class DbTestCase extends TestCase
         $tableFields = $this->connectToDatabase()->prepare("
             SELECT
                 GROUP_CONCAT(COLUMN_NAME) AS FIELDS
-            FROM 
+            FROM
                 INFORMATION_SCHEMA.COLUMNS
-            WHERE 
+            WHERE
                 TABLE_SCHEMA = '{$this->dbConfigs['name']}'
             AND
                 TABLE_NAME = '{$table}'

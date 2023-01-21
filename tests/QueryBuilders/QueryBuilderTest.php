@@ -22,7 +22,7 @@ class QueryBuilderTest extends DbTestCase
     {
         parent::setUp();
         
-        // create new QueryBuilder instance
+        // create new query builder instance
         $this->queryBuilder = new QueryBuilder(
             $this->connectToDatabase()
         );

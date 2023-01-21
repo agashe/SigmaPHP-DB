@@ -45,6 +45,11 @@ class Model implements ModelInterface
     protected $fields;
 
     /**
+     * @var array $values
+     */
+    protected $values;
+
+    /**
      * Model Constructor
      */
     public function __construct($dbConnection, $dbName)
@@ -74,6 +79,13 @@ class Model implements ModelInterface
         if (empty($this->fields)) {
             $this->fields = $this->fetchTableFields($this->dbName);
         }
+
+        // set fields values
+        if (empty($this->values)) {
+            foreach ($this->fields as $field) {
+                $this->values[$field] = null;
+            }
+        }
     }
 
     /**
@@ -86,7 +98,7 @@ class Model implements ModelInterface
     {
         $tableName = substr(
             $className, 
-            (-1 * (strlen($className) - strrpos($className, '\\') - 1))
+            (-1 * (strlen($className) - strrpos($className, '\\')))
         );            
 
         $inflector = InflectorFactory::create()->build();
@@ -100,18 +112,52 @@ class Model implements ModelInterface
      */
     protected function fetchTableFields()
     {
-        $tableFields = $this->fetchAll("
-        SELECT
-            GROUP_CONCAT(COLUMN_NAME) AS FIELDS
-        FROM 
-            INFORMATION_SCHEMA.COLUMNS
-        WHERE 
-            TABLE_SCHEMA = '{$this->dbName}'
-        AND
-            TABLE_NAME = '{$this->table}'
+        $tableFields = $this->fetch("
+            SELECT
+                GROUP_CONCAT(
+                    COLUMN_NAME ORDER BY ORDINAL_POSITION ASC
+                ) AS FIELDS
+            FROM 
+                INFORMATION_SCHEMA.COLUMNS
+            WHERE 
+                TABLE_SCHEMA = '{$this->dbName}'
+            AND
+                TABLE_NAME = '{$this->table}'
         ")['FIELDS'];
 
-        return array_values($tableFields);
+        return array_values(explode(',', $tableFields));
+    }
+
+    /**
+     * Set field value.
+     * 
+     * @param string $field
+     * @param string $value
+     * @return void
+     */
+    final public function __set($field, $value)
+    {
+        if (!in_array($field, $this->fields)) {
+            throw new \Exception("Unknown field $field");
+        }
+
+        $this->values[$field] = $value;
+    }
+
+    /**
+     * Set field value.
+     * 
+     * @param string $field
+     * @param string $value
+     * @return void
+     */
+    final public function __get($field)
+    {
+        if (!in_array($field, $this->fields)) {
+            throw new \Exception("Unknown field $field");
+        }
+        
+        return $this->values[$field];
     }
 
     /**
