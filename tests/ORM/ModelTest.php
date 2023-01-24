@@ -115,4 +115,50 @@ class ModelTest extends DbTestCase
         $this->expectException(\Exception::class);
         $this->model->gender = 'hello';
     }
+
+    /**
+     * Test query method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testQueryMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email)
+            VALUES
+                ('test1', 'test1@test.local'), 
+                ('test2', 'test2@test.local'), 
+                ('test3', 'test3@test.local'); 
+        ");
+
+        $addTestData->execute();
+
+        $this->assertEquals(
+            'test1',
+            $this->model->query()
+                ->where('name', '=', 'test1')
+                ->get()['name']
+        );
+    }
+
+    /**
+     * Test convert array to model method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testConvertArrayToModelMethod()
+    {
+        $tempModel =  ExampleModel::convertArrayToModel([
+            'name' => 'test1',
+            'email' => 'test1@test.local',
+            'age' => 15
+        ]);
+
+        $this->assertEquals('test1', $tempModel->name);
+        $this->assertEquals('test1@test.local', $tempModel->email);
+        $this->assertEquals(15, $tempModel->age);
+    }
 }

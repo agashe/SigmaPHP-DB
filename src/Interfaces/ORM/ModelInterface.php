@@ -12,5 +12,52 @@ interface ModelInterface
      * 
      * @return object
      */
-    public static function query();
+    public function query();
+
+    /**
+     * Create model from an array of data.
+     * 
+     * @param array $modelData
+     * @return object
+     */
+    public static function convertArrayToModel($modelData);
+    
+    /**
+     * Fetch all models.
+     *
+     * @return array
+     */
+    public static function all();
+
+    /**
+     * Find model by primary key.
+     *
+     * @param mixed $primaryValue
+     * @return Model
+     */
+    public static function find($primaryValue);
+
+    /**
+     * Find model by field's value.
+     *
+     * @param string $field
+     * @param int $value
+     * @return array
+     */
+    public static function findBy($field, $value);
+    
+    /**
+     * Save model , by updating current model 
+     * or creating new one.
+     *
+     * @return array
+     */
+    public function save();
+    
+    /**
+     * Delete model.
+     *
+     * @return array
+     */
+    public function delete();
 }

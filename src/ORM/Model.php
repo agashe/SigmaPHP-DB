@@ -50,6 +50,11 @@ class Model implements ModelInterface
     protected $values;
 
     /**
+     * @var bool $isNew
+     */
+    protected $isNew;
+
+    /**
      * Model Constructor
      */
     public function __construct($dbConnection, $dbName)
@@ -86,6 +91,9 @@ class Model implements ModelInterface
                 $this->values[$field] = null;
             }
         }
+
+        // set isNew true
+        $this->isNew = true;
     }
 
     /**
@@ -163,10 +171,82 @@ class Model implements ModelInterface
     /**
      * Use the query builder on the model.
      * 
+     * @return array
+     */
+    final public function query()
+    {
+        return $this->queryBuilder->table($this->table);
+    }
+
+    /**
+     * Create model from an array of data.
+     * 
+     * @param array $modelData
      * @return object
      */
-    final public static function query()
+    final public static function convertArrayToModel($modelData)
     {
+        $modelClass = get_called_class();
+        $newModel = new $modelClass;
 
+        foreach ($modelData as $key => $val) {
+            $newModel->$key = $val;
+        }
+
+        return $newModel;
+    }
+
+    /**
+     * Fetch all models.
+     *
+     * @return array
+     */
+    final static public function all()
+    {
+    
+    }
+
+    /**
+     * Find model by primary key.
+     *
+     * @param mixed $primaryValue
+     * @return Model
+     */
+    final static public function find($primaryValue)
+    {
+        
+    }
+
+    /**
+     * Find model by field's value.
+     *
+     * @param string $field
+     * @param int $value
+     * @return array
+     */
+    final static public function findBy($field, $value)
+    {
+        
+    }
+    
+    /**
+     * Save model , by updating current model 
+     * or creating new one.
+     *
+     * @return array
+     */
+    final public function save()
+    {
+        
+    }
+    
+    /**
+     * Delete model.
+     *
+     * @return array
+     */
+    final public function delete()
+    {
+        
     }
 }
