@@ -20,14 +20,14 @@ interface ModelInterface
      * @param array $modelData
      * @return object
      */
-    public static function convertArrayToModel($modelData);
+    public function create($modelData);
     
     /**
      * Fetch all models.
      *
      * @return array
      */
-    public static function all();
+    public function all();
 
     /**
      * Find model by primary key.
@@ -35,7 +35,7 @@ interface ModelInterface
      * @param mixed $primaryValue
      * @return Model
      */
-    public static function find($primaryValue);
+    public function find($primaryValue);
 
     /**
      * Find model by field's value.
@@ -44,7 +44,7 @@ interface ModelInterface
      * @param int $value
      * @return array
      */
-    public static function findBy($field, $value);
+    public function findBy($field, $value);
     
     /**
      * Save model , by updating current model 

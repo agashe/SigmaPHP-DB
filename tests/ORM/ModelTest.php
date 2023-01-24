@@ -144,21 +144,102 @@ class ModelTest extends DbTestCase
     }
 
     /**
-     * Test convert array to model method.
+     * Test create model method.
      *
      * @runInSeparateProcess
      * @return void
      */
-    public function testConvertArrayToModelMethod()
+    public function testCreateMethod()
     {
-        $tempModel =  ExampleModel::convertArrayToModel([
+        $tempModel =  $this->model->create([
             'name' => 'test1',
             'email' => 'test1@test.local',
             'age' => 15
         ]);
 
+        $this->assertInstanceOf(ExampleModel::class, $tempModel);
         $this->assertEquals('test1', $tempModel->name);
         $this->assertEquals('test1@test.local', $tempModel->email);
         $this->assertEquals(15, $tempModel->age);
+    }
+
+    /**
+     * Test all method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testAllMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13), 
+                ('test2', 'test2@test.local', 14), 
+                ('test3', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModels = $this->model->all();
+
+        $this->assertEquals(3, count($testModels));
+        
+        foreach ($testModels as $testModel) {
+            $this->assertInstanceOf(ExampleModel::class, $testModel);
+        }
+        
+        $this->assertEquals(14, $testModels[1]->age);
+    }
+    
+    /**
+     * Test find method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testFindMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13), 
+                ('test2', 'test2@test.local', 14), 
+                ('test3', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model->find(3);
+
+        $this->assertInstanceOf(ExampleModel::class, $testModel);      
+        $this->assertEquals('test3@test.local', $testModel->email);
+    }
+    
+    /**
+     * Test find by method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testFindByMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13), 
+                ('test2', 'test2@test.local', 14), 
+                ('test3', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model->findBy('age', 13);
+
+        $this->assertInstanceOf(ExampleModel::class, $testModel);      
+        $this->assertEquals('test1', $testModel->name);
     }
 }

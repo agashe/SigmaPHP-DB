@@ -207,6 +207,7 @@ class ConsoleManager implements ConsoleManagerInterface
             ERROR;
 
             $this->printMessage($message, "error");
+            return;
         }
 
         $this->configs = require $configPath . '/' . 

@@ -171,7 +171,7 @@ class Model implements ModelInterface
     /**
      * Use the query builder on the model.
      * 
-     * @return array
+     * @return object
      */
     final public function query()
     {
@@ -184,10 +184,10 @@ class Model implements ModelInterface
      * @param array $modelData
      * @return object
      */
-    final public static function convertArrayToModel($modelData)
+    final public function create($modelData)
     {
         $modelClass = get_called_class();
-        $newModel = new $modelClass;
+        $newModel = new $modelClass($this->dbConnection, $this->dbName);
 
         foreach ($modelData as $key => $val) {
             $newModel->$key = $val;
@@ -201,9 +201,15 @@ class Model implements ModelInterface
      *
      * @return array
      */
-    final static public function all()
+    final public function all()
     {
-    
+        $models = [];
+        
+        foreach ($this->query()->getAll() as $modelData) {
+            $models[] = $this->create($modelData);
+        }
+
+        return $models;
     }
 
     /**
@@ -212,9 +218,13 @@ class Model implements ModelInterface
      * @param mixed $primaryValue
      * @return Model
      */
-    final static public function find($primaryValue)
+    final public function find($primaryValue)
     {
-        
+        return $this->create(
+            $this->query()
+                ->where($this->primary, '=', $primaryValue)
+                ->get()
+        );
     }
 
     /**
@@ -224,9 +234,13 @@ class Model implements ModelInterface
      * @param int $value
      * @return array
      */
-    final static public function findBy($field, $value)
+    final public function findBy($field, $value)
     {
-        
+        return $this->create(
+            $this->query()
+                ->where($field, '=', $value)
+                ->get()
+        );
     }
     
     /**
