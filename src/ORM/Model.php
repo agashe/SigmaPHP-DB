@@ -57,11 +57,17 @@ class Model implements ModelInterface
     /**
      * Model Constructor
      */
-    public function __construct($dbConnection, $dbName)
-    {
+    public function __construct(
+        $dbConnection = null, 
+        $dbName = '',
+        $values = [],
+        $isNew = true
+    ) {
         $this->dbConnection = $dbConnection;
-        $this->queryBuilder = new QueryBuilder($this->dbConnection);
         $this->dbName = $dbName;
+        $this->isNew = $isNew;
+        
+        $this->queryBuilder = new QueryBuilder($this->dbConnection);
 
         // set table name if it wasn't provided
         if (empty($this->table)) {
@@ -88,12 +94,20 @@ class Model implements ModelInterface
         // set fields values
         if (empty($this->values)) {
             foreach ($this->fields as $field) {
-                $this->values[$field] = null;
+                if ($field == $this->primary) {
+                    if (!isset($values[$field]) || empty($values[$field])) {
+                        $this->isNew = true;
+                        $this->values[$field] = null;
+                        continue;
+                    } else {
+                        $this->isNew = false;
+                    }
+                }
+
+                $this->values[$field] = (isset($values[$field])) ? 
+                    $values[$field] : null;
             }
         }
-
-        // set isNew true
-        $this->isNew = true;
     }
 
     /**
@@ -137,6 +151,16 @@ class Model implements ModelInterface
     }
 
     /**
+     * Use the query builder on the model.
+     * 
+     * @return object
+     */
+    protected function query()
+    {
+        return $this->queryBuilder->table($this->table);
+    }
+
+    /**
      * Set field value.
      * 
      * @param string $field
@@ -169,31 +193,19 @@ class Model implements ModelInterface
     }
 
     /**
-     * Use the query builder on the model.
-     * 
-     * @return object
-     */
-    final public function query()
-    {
-        return $this->queryBuilder->table($this->table);
-    }
-
-    /**
      * Create model from an array of data.
      * 
      * @param array $modelData
+     * @param bool $isNew
      * @return object
      */
-    final public function create($modelData)
-    {
-        $modelClass = get_called_class();
-        $newModel = new $modelClass($this->dbConnection, $this->dbName);
-
-        foreach ($modelData as $key => $val) {
-            $newModel->$key = $val;
-        }
-
-        return $newModel;
+    final public function create($modelData, $isNew = true)
+    {        
+        return new (get_called_class())(
+            $this->dbConnection,
+            $this->dbName,
+            $modelData
+        );
     }
 
     /**
@@ -206,10 +218,22 @@ class Model implements ModelInterface
         $models = [];
         
         foreach ($this->query()->getAll() as $modelData) {
-            $models[] = $this->create($modelData);
+            $models[] = $this->create($modelData, false);
         }
 
         return $models;
+    }
+
+    /**
+     * Count all models.
+     *
+     * @return int
+     */
+    final public function count()
+    {
+        return $this->query()
+            ->select(['count(*) as rows_count'])
+            ->get()['rows_count'];
     }
 
     /**
@@ -224,7 +248,7 @@ class Model implements ModelInterface
             $this->query()
                 ->where($this->primary, '=', $primaryValue)
                 ->get()
-        );
+        , false);
     }
 
     /**
@@ -240,27 +264,70 @@ class Model implements ModelInterface
             $this->query()
                 ->where($field, '=', $value)
                 ->get()
-        );
+        , false);
     }
     
     /**
      * Save model , by updating current model 
      * or creating new one.
      *
-     * @return array
+     * @return mixed
      */
     final public function save()
     {
-        
+        if ($this->isNew) {
+            $fields = implode(',', array_keys($this->values));
+            $values = array_values($this->values);
+            
+            $valuesStr = '';
+            foreach ($values as $value) {
+                $valuesStr .= (is_string($value) ? "'$value'" : $value ). ','; 
+            }
+
+            $valuesStr = rtrim($valuesStr, ',');
+            
+            $this->execute("
+                INSERT INTO {$this->table} ($fields) VALUES ($valuesStr);
+            ");
+        } else {
+            $updateStatement = "UPDATE {$this->table} SET ";
+
+            foreach ($this->values as $col => $val) {
+                $val = is_string($val) ? "'$val'" : $val; 
+                $updateStatement .= "$col = $val,";
+            }
+
+            $updateStatement = rtrim($updateStatement, ',');
+
+            if (isset($search) && !empty($search)) {
+                $field = implode('', array_keys($search));
+                $value = implode('', array_values($search));
+                $value = is_string($value) ? "'$value'" : $value;
+                $updateStatement .= " WHERE $field = $value;";
+            }
+
+            $this->execute($updateStatement);
+        }
     }
     
     /**
      * Delete model.
      *
-     * @return array
+     * @return bool
      */
     final public function delete()
     {
+        $condition = 1;
         
+        if (isset($search) && !empty($search)) {
+            $field = implode('', array_keys($search));
+            $value = implode('', array_values($search));
+            $value = is_string($value) ? "'$value'" : $value;
+            $condition = "$field = $value";
+        }
+
+        $this->execute("
+            DELETE FROM {$this->table} WHERE $condition;
+        ");
     }
 }

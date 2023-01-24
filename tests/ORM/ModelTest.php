@@ -117,33 +117,6 @@ class ModelTest extends DbTestCase
     }
 
     /**
-     * Test query method.
-     *
-     * @runInSeparateProcess
-     * @return void
-     */
-    public function testQueryMethod()
-    {
-        $addTestData = $this->connectToDatabase()->prepare("
-            INSERT INTO example_models
-                (name, email)
-            VALUES
-                ('test1', 'test1@test.local'), 
-                ('test2', 'test2@test.local'), 
-                ('test3', 'test3@test.local'); 
-        ");
-
-        $addTestData->execute();
-
-        $this->assertEquals(
-            'test1',
-            $this->model->query()
-                ->where('name', '=', 'test1')
-                ->get()['name']
-        );
-    }
-
-    /**
      * Test create model method.
      *
      * @runInSeparateProcess
@@ -191,6 +164,28 @@ class ModelTest extends DbTestCase
         }
         
         $this->assertEquals(14, $testModels[1]->age);
+    }
+    
+    /**
+     * Test count method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCountMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13), 
+                ('test2', 'test2@test.local', 14), 
+                ('test3', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $this->assertEquals(3, $this->model->count());
     }
     
     /**

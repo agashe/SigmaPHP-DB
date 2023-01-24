@@ -8,19 +8,13 @@ namespace SigmaPHP\DB\Interfaces\ORM;
 interface ModelInterface
 {
     /**
-     * Use the query builder on the model.
-     * 
-     * @return object
-     */
-    public function query();
-
-    /**
      * Create model from an array of data.
      * 
      * @param array $modelData
+     * @param bool $isNew
      * @return object
      */
-    public function create($modelData);
+    public function create($modelData, $isNew);
     
     /**
      * Fetch all models.
@@ -28,6 +22,13 @@ interface ModelInterface
      * @return array
      */
     public function all();
+
+    /**
+     * Count all models.
+     *
+     * @return int
+     */
+    public function count();
 
     /**
      * Find model by primary key.
@@ -50,14 +51,14 @@ interface ModelInterface
      * Save model , by updating current model 
      * or creating new one.
      *
-     * @return array
+     * @return mixed
      */
     public function save();
     
     /**
      * Delete model.
      *
-     * @return array
+     * @return bool
      */
     public function delete();
 }
