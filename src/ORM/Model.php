@@ -277,12 +277,23 @@ class Model implements ModelInterface
      */
     final public function save()
     {
+        $values = [];
+
+        foreach ($this->values as $field => $value) {
+            if (($field == $this->primary) || empty($value)) {
+                continue;
+            }
+
+            $values[$field] = $value;
+        }
+
         if ($this->isNew) {
-            $this->insert($this->table, [$this->values]);
+            $this->insert($this->table, [$values]);
+            $this->isNew = false;
         } else {
             $this->update(
                 $this->table, 
-                [$this->values],
+                $values,
                 [$this->primary => $this->values[$this->primary]]
             );
         }

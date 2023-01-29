@@ -237,4 +237,101 @@ class ModelTest extends DbTestCase
         $this->assertInstanceOf(ExampleModel::class, $testModel);      
         $this->assertEquals('test1', $testModel->name);
     }
+
+    /**
+     * Test create new model.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCreateNewModel()
+    {
+        $this->model->name = 'hello';
+        $this->model->email = 'hello@world.com';
+        $this->model->save();
+
+        $dataWasSaved = $this->connectToDatabase()->prepare('
+            SELECT * FROM example_models;
+        ');
+
+        $dataWasSaved->execute();
+        
+        $this->assertEquals(1, $dataWasSaved->fetch()['id']);
+        $this->assertEquals(
+            false,
+            $this->getPrivatePropertyValue($this->model, 'isNew')
+        );
+    }
+
+    /**
+     * Test update model.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testUpdateModel()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13); 
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model->find(1);
+        $testModel->name = 'hello';
+        $testModel->email = 'hello@world.com';
+        $testModel->age = 20;
+        $testModel->save();
+
+        $dataWasSaved = $this->connectToDatabase()->prepare('
+            SELECT * FROM example_models;
+        ');
+
+        $dataWasSaved->execute();
+        $testResult = $dataWasSaved->fetch(PDO::FETCH_ASSOC);
+
+        $this->assertEquals('hello', $testResult['name']);
+        $this->assertEquals('hello@world.com', $testResult['email']);
+        $this->assertEquals(20, $testResult['age']);
+        $this->assertEquals(
+            false,
+            $this->getPrivatePropertyValue($testModel, 'isNew')
+        );
+    }
+
+    /**
+     * Test delete model.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testDeleteModel()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13); 
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model->find(1);
+        $testModel->delete();
+
+        $dataWasSaved = $this->connectToDatabase()->prepare('
+            SELECT * FROM example_models;
+        ');
+
+        $dataWasSaved->execute();
+
+        $this->assertFalse($dataWasSaved->fetch());
+        $this->assertEquals(
+            true,
+            $this->getPrivatePropertyValue($testModel, 'isNew')
+        );
+    }
 }

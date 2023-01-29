@@ -33,7 +33,7 @@ trait DbOperations
             }
 
             $valuesStr = rtrim($valuesStr, ',');
-            
+
             $this->execute("
                 INSERT INTO $table ($fields) VALUES ($valuesStr);
             ");
