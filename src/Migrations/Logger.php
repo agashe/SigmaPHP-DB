@@ -3,14 +3,14 @@
 namespace SigmaPHP\DB\Migrations;
 
 use SigmaPHP\DB\Interfaces\Migrations\LoggerInterface;
-use SigmaPHP\DB\Traits\DbMethods;
+use SigmaPHP\DB\Traits\DbOperations;
 
 /**
  * Logger Class
  */
 class Logger implements LoggerInterface
 {
-    use DbMethods;
+    use DbOperations;
     
     /**
      * @var \PDO $dbConnection
@@ -56,11 +56,9 @@ class Logger implements LoggerInterface
      */
     final public function log($migration)
     {
-        $this->execute("
-            INSERT INTO {$this->logsTable} (migration)
-            VALUES ('$migration')
-            ;
-        ");
+        $this->insert($this->logsTable, [
+            ['migration' => $migration]
+        ]);
     }
 
     /**
@@ -115,11 +113,6 @@ class Logger implements LoggerInterface
      */
     final public function removeLog($migration)
     {
-        $this->execute("
-            DELETE FROM 
-                {$this->logsTable} 
-            WHERE 
-                migration='$migration';
-        ");
+        $this->delete($this->logsTable, ['migration' => $migration]);
     }
 }

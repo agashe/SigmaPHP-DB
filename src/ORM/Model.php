@@ -2,7 +2,7 @@
 
 namespace SigmaPHP\DB\ORM;
 
-use SigmaPHP\DB\Traits\DbMethods;
+use SigmaPHP\DB\Traits\DbOperations;
 use Doctrine\Inflector\InflectorFactory;
 use SigmaPHP\DB\QueryBuilders\QueryBuilder;
 use SigmaPHP\DB\Interfaces\ORM\ModelInterface;
@@ -12,7 +12,9 @@ use SigmaPHP\DB\Interfaces\ORM\ModelInterface;
  */
 class Model implements ModelInterface
 {
-    use DbMethods;
+    use DbOperations {
+        DbOperations::delete as remove;
+    }
 
     /**
      * @var \PDO $dbConnection
@@ -276,37 +278,13 @@ class Model implements ModelInterface
     final public function save()
     {
         if ($this->isNew) {
-            $fields = implode(',', array_keys($this->values));
-            $values = array_values($this->values);
-            
-            $valuesStr = '';
-            foreach ($values as $value) {
-                $valuesStr .= (is_string($value) ? "'$value'" : $value ). ','; 
-            }
-
-            $valuesStr = rtrim($valuesStr, ',');
-            
-            $this->execute("
-                INSERT INTO {$this->table} ($fields) VALUES ($valuesStr);
-            ");
+            $this->insert($this->table, [$this->values]);
         } else {
-            $updateStatement = "UPDATE {$this->table} SET ";
-
-            foreach ($this->values as $col => $val) {
-                $val = is_string($val) ? "'$val'" : $val; 
-                $updateStatement .= "$col = $val,";
-            }
-
-            $updateStatement = rtrim($updateStatement, ',');
-
-            if (isset($search) && !empty($search)) {
-                $field = implode('', array_keys($search));
-                $value = implode('', array_values($search));
-                $value = is_string($value) ? "'$value'" : $value;
-                $updateStatement .= " WHERE $field = $value;";
-            }
-
-            $this->execute($updateStatement);
+            $this->update(
+                $this->table, 
+                [$this->values],
+                [$this->primary => $this->values[$this->primary]]
+            );
         }
     }
     
@@ -317,17 +295,11 @@ class Model implements ModelInterface
      */
     final public function delete()
     {
-        $condition = 1;
-        
-        if (isset($search) && !empty($search)) {
-            $field = implode('', array_keys($search));
-            $value = implode('', array_values($search));
-            $value = is_string($value) ? "'$value'" : $value;
-            $condition = "$field = $value";
-        }
+        $this->remove(
+            $this->table, 
+            [$this->primary => $this->values[$this->primary]]
+        );
 
-        $this->execute("
-            DELETE FROM {$this->table} WHERE $condition;
-        ");
+        $this->isNew = true;
     }
 }
