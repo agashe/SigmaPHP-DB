@@ -16,32 +16,4 @@ interface SeederInterface
      * @return void
      */
     public function run();
-
-    /**
-     * Insert data into table.
-     * 
-     * @param string $table
-     * @param array $data
-     * @return void
-     */
-    public function insert($table, $data);
-    
-    /**
-     * Update data in table.
-     * 
-     * @param string $table
-     * @param array $data
-     * @param array $search
-     * @return void
-     */
-    public function update($table, $data, $search);
-
-    /**
-     * Delete data from table.
-     * 
-     * @param string $table
-     * @param array $search
-     * @return void
-     */
-    public function delete($table, $search);
 }

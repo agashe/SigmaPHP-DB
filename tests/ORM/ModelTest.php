@@ -53,7 +53,7 @@ class ModelTest extends DbTestCase
      */
     private function getPrivatePropertyValue($object, $property)
     {
-        $objectReflection = new ReflectionClass($object);
+        $objectReflection = new \ReflectionClass($object);
         $propertyReflection = $objectReflection->getProperty($property);
         $propertyReflection->setAccessible(true);
         
