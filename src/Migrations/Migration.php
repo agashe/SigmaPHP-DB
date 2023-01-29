@@ -336,7 +336,7 @@ class Migration implements MigrationInterface
      */
     final public function checkColumn($table, $name)
     {
-        return (bool) $this->execute("
+        return (bool) $this->fetch("
             SELECT
                 COLUMN_NAME
             FROM 
@@ -413,7 +413,7 @@ class Migration implements MigrationInterface
      */
     final public function checkIndex($table, $name)
     {
-        return (bool) $this->execute("
+        return (bool) $this->fetch("
             SHOW INDEX FROM $table WHERE Key_name='$name';
         ");
     }
@@ -480,7 +480,7 @@ class Migration implements MigrationInterface
      */
     final public function checkForeignKey($table, $constraint)
     {
-        return (bool) $this->execute("
+        return (bool) $this->fetch("
             SELECT
                 CONSTRAINT_NAME
             FROM 
