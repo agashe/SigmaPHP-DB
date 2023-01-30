@@ -71,7 +71,7 @@ class Logger implements LoggerInterface
     {
         $allLoggedMigrations = $this->fetchColumn("
             SELECT migration FROM {$this->logsTable};
-        ", 0);
+        ");
 
         return array_diff(
             $migrations,
@@ -82,16 +82,15 @@ class Logger implements LoggerInterface
     /**
      * Get all migrations that can be rolled back.
      * 
+     * @param string $date
      * @return array
      */
-    final public function canBeRolledBack()
+    final public function canBeRolledBack($date = '')
     {
-        return $this->fetchColumn("
-            SELECT
-                migration 
-            FROM
-                {$this->logsTable}
-            WHERE DATE(executed_at) = (
+        $dateExpression = '';
+
+        if (empty($date)) {
+            $dateExpression = "= (
                 SELECT
                     DATE(executed_at)
                 FROM
@@ -101,8 +100,18 @@ class Logger implements LoggerInterface
                 ORDER BY
                     DATE(executed_at) DESC
                 LIMIT 1
-            );
-        ", 0);
+            )";
+        } else {
+            $dateExpression = ">= '{$date}'";
+        }
+
+        return $this->fetchColumn("
+            SELECT
+                migration 
+            FROM
+                {$this->logsTable}
+            WHERE DATE(executed_at) {$dateExpression};
+        ");
     }
 
     /**

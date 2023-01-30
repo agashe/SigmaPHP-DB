@@ -51,7 +51,7 @@ trait DbMethods
      * @param int $columnId
      * @return array
      */
-    public function fetchColumn($query, $columnId)
+    public function fetchColumn($query, $columnId = 0)
     {
         $handler = $this->dbConnection->prepare($query);
         $handler->execute();
@@ -76,6 +76,24 @@ trait DbMethods
                 TABLE_SCHEMA = '{$dbName}'
             AND
                 TABLE_NAME = '{$tableName}';
+        ");
+    }
+    
+    /**
+     * Get all tables names in the database. 
+     *
+     * @param string $dbName
+     * @return array
+     */
+    public function getAllTables($dbName)
+    {
+        return $this->fetchColumn("
+            SELECT
+                TABLE_NAME
+            FROM
+                INFORMATION_SCHEMA.TABLES
+            WHERE 
+                TABLE_SCHEMA = '{$dbName}';
         ");
     }
 }

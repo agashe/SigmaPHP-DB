@@ -139,7 +139,7 @@ class DbMethodsTest extends DbTestCase
 
         $result = $this->testTrait->fetchColumn("
             SELECT * FROM test;
-        ", 0);
+        ");
 
         $this->assertEquals(3, count($result));
     }
@@ -154,6 +154,19 @@ class DbMethodsTest extends DbTestCase
     {
         $this->assertTrue($this->testTrait->tableExists(
             $this->dbConfigs['name'], 'test'
+        ));
+    }
+    
+    /*
+     * Test get all tables names in database.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testGetAllTablesNamesInDatabase()
+    {
+        $this->assertEquals(1, count(
+            $this->testTrait->getAllTables($this->dbConfigs['name'])
         ));
     }
 }

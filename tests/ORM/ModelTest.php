@@ -41,6 +41,9 @@ class ModelTest extends DbTestCase
      */
     public function tearDown(): void
     {
+        parent::tearDown();
+
+        // drop tests table
         $this->dropTestTable('example_models');
     }
     

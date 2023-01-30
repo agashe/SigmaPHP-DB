@@ -2,7 +2,6 @@
 
 namespace SigmaPHP\DB\Console;
 
-use Exception;
 use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
 use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Migrations\Logger;
@@ -52,6 +51,10 @@ class ConsoleManager implements ConsoleManagerInterface
         $argument = $input[2] ?? null;
         $option = $input[3] ?? null;
 
+        if (!in_array($command, ['version', 'help', 'create:config'])) {
+            $this->loadConfigs($option);
+        }
+        
         switch ($command) {
             case 'version':
                 $this->version();
@@ -66,30 +69,39 @@ class ConsoleManager implements ConsoleManagerInterface
                 break;
 
             case 'create:migration':
-                $this->loadConfigs($option);
                 $this->createMigrationFile($argument);
                 break;
 
             case 'create:seeder':
-                $this->loadConfigs($option);
                 $this->createSeeder($argument);
                 break;
 
             case 'migrate':
-                $this->loadConfigs($option);
                 $this->migrate($argument);
                 break;
 
             case 'rollback':
-                $this->loadConfigs($option);
-                $this->rollback();
+                $this->rollback($argument);
                 break;
 
             case 'seed':
-                $this->loadConfigs($option);
                 $this->seed($argument);
                 break;
 
+            case 'truncate':
+                $this->truncate();
+                break;
+
+            case 'drop':
+                $this->drop();
+                break;
+
+            case 'fresh':
+                $this->drop();
+                $this->migrate();
+                $this->seed();
+                break;
+                
             default:
                 $this->commandNotFound();
                 break;
@@ -107,7 +119,7 @@ class ConsoleManager implements ConsoleManagerInterface
         if (!isset($this->configs['database_connection']) ||
             empty($this->configs['database_connection'])
         ) {
-            throw new Exception(
+            throw new \Exception(
                 'Couldn\'t connect to the DB , no configs were provided!'
             );
         }
@@ -207,7 +219,7 @@ class ConsoleManager implements ConsoleManagerInterface
             ERROR;
 
             $this->printMessage($message, "error");
-            return;
+            exit;
         }
 
         $this->configs = require $configPath . '/' . 
@@ -242,6 +254,10 @@ class ConsoleManager implements ConsoleManagerInterface
                 Create migration file.
             create:seeder {seeder name}
                 Create seeder file. 
+            drop
+                Drop all tables in the database.
+            fresh
+                Run migrations and seed the database.
             help
                 Print all available commands (this menu).
             migrate
@@ -252,6 +268,8 @@ class ConsoleManager implements ConsoleManagerInterface
                 Run seeders.
             version
                 Print the current version of SigmaPHP-DB Library.
+            truncate
+                Delete the data in all tables.
 
         Examples:
             - php sigma-db version
@@ -351,7 +369,7 @@ class ConsoleManager implements ConsoleManagerInterface
      * @param string $migrationName
      * @return void
      */
-    private function migrate($migrationName)
+    private function migrate($migrationName = '')
     {
         $migrations = [];
         $logger = new Logger(
@@ -414,16 +432,17 @@ class ConsoleManager implements ConsoleManagerInterface
     /**
      * Rollback the database.
      * 
+     * @param string $date
      * @return void
      */
-    private function rollback()
+    private function rollback($date = '')
     {
         $logger = new Logger(
             $this->getDbConnection(),
             $this->configs['logs_table_name']
         );
 
-        foreach ($logger->canBeRolledBack() as $migration) {
+        foreach ($logger->canBeRolledBack($date) as $migration) {
             require_once $this->configs['path_to_migrations'] . 
                 '/' . $migration . '.php';
             
@@ -445,7 +464,7 @@ class ConsoleManager implements ConsoleManagerInterface
      * @param string $seederName
      * @return void
      */
-    private function seed($seederName)
+    private function seed($seederName = '')
     {
         $seeders = [];
 
@@ -480,5 +499,81 @@ class ConsoleManager implements ConsoleManagerInterface
         }
 
         $this->printMessage("All seeders ran successfully.", "success");
+    }
+
+    /**
+     * Truncate the database.
+     * 
+     * @return void
+     */
+    private function truncate()
+    {
+        $message = "This command will truncate all tables, ";
+        $message .= "Are You Sure? (Enter 'YES' to proceed)";
+        $this->printMessage($message);
+
+        $answer = stream_get_line(STDIN, 16, PHP_EOL);
+
+        if ($answer == 'YES') {
+            $logger = new Logger(
+                $this->getDbConnection(),
+                $this->configs['logs_table_name']
+            );
+
+            $tables = $logger->getAllTables(
+                $this->configs['database_connection']['name']
+            );
+                        
+            foreach ($tables as $table) {
+                if ($table == $this->configs['logs_table_name']) {
+                    continue;
+                }
+
+                $logger->execute("
+                    TRUNCATE TABLE {$table};
+                ");
+            }
+
+            $this->printMessage(
+                "All tables were truncated successfully.",
+                "success"
+            );
+        }
+    }
+
+    /**
+     * Drop all tables in the database.
+     * 
+     * @return void
+     */
+    private function drop()
+    {
+        $message = "This command will drop all tables, ";
+        $message .= "Are You Sure? (Enter 'YES' to proceed)";
+        $this->printMessage($message);
+
+        $answer = stream_get_line(STDIN, 16, PHP_EOL);
+
+        if ($answer == 'YES') {
+            $logger = new Logger(
+                $this->getDbConnection(),
+                $this->configs['logs_table_name']
+            );
+
+            $tables = $logger->getAllTables(
+                $this->configs['database_connection']['name']
+            );
+                        
+            foreach ($tables as $table) {
+                $logger->execute("
+                    DROP TABLE {$table};
+                ");
+            }
+
+            $this->printMessage(
+                "All tables were dropped successfully.",
+                "success"
+            );
+        }
     }
 }

@@ -26,9 +26,10 @@ interface LoggerInterface
     /**
      * Get all migrations that can be rolled back.
      * 
+     * @param string $date
      * @return array
      */
-    public function canBeRolledBack();
+    public function canBeRolledBack($date);
 
     /**
      * Remove the log for a migration.
