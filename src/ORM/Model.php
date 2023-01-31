@@ -92,7 +92,7 @@ class Model implements ModelInterface
         if (empty($this->fields)) {
             $this->fields = $this->fetchTableFields($this->dbName);
         }
-
+        
         // set fields values
         if (empty($this->values)) {
             foreach ($this->fields as $field) {
@@ -192,6 +192,16 @@ class Model implements ModelInterface
         }
         
         return $this->values[$field];
+    }
+
+    /**
+     * Get table name.
+     *
+     * @return string
+     */
+    final public function getTableName()
+    {
+        return $this->table;
     }
 
     /**
@@ -312,5 +322,45 @@ class Model implements ModelInterface
         );
 
         $this->isNew = true;
+    }
+
+    /**
+     * Get one/many models in another table 
+     * related to this model.
+     *
+     * @param Model $model
+     * @param string $foreignKey
+     * @param string $localKey
+     * @return array
+     */
+    final public function hasRelation($model, $foreignKey, $localKey)
+    {
+        $relationModel = new ($model)(
+            $this->dbConnection,
+            $this->dbName
+        );
+
+        $relatedModelsData = $this->query()
+            ->select([$relationModel->getTableName() . '.*'])
+            ->join(
+                $relationModel->getTableName(),
+                $relationModel->getTableName() . '.' . $foreignKey,
+                '=',
+                $this->table . '.' . $localKey,
+            )
+            ->where(
+                $this->table . '.' . $this->primary,
+                '=',
+                $this->values[$this->primary] ?? null
+            )
+            ->getAll();
+
+        $models = [];
+        
+        foreach ($relatedModelsData as $relatedModelData) {
+            $models[] = $relationModel->create($relatedModelData, false);
+        }
+
+        return $models;
     }
 }

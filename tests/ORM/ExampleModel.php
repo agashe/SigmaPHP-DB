@@ -7,5 +7,15 @@ use SigmaPHP\DB\ORM\Model;
  */
 class ExampleModel extends Model
 {
-
+    /**
+     * @return array
+     */
+    public function relationExamples()
+    {
+        return $this->hasRelation(
+            RelationExampleModel::class,
+            'example_id',
+            'id'
+        );
+    }
 }

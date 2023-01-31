@@ -1,9 +1,9 @@
 <?php
 
-use SebastianBergmann\CodeCoverage\Report\PHP;
 use SigmaPHP\DB\TestCases\DbTestCase;
 
 require('ExampleModel.php');
+require('RelationExampleModel.php');
 
 /**
  * Model Test
@@ -117,6 +117,20 @@ class ModelTest extends DbTestCase
     {
         $this->expectException(\Exception::class);
         $this->model->gender = 'hello';
+    }
+
+    /**
+     * Test get table name method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testGetTableNameMethod()
+    {
+        $this->assertEquals(
+            'example_models', 
+            $this->model->getTableName()
+        );
     }
 
     /**
@@ -237,7 +251,7 @@ class ModelTest extends DbTestCase
 
         $testModel = $this->model->findBy('age', 13);
 
-        $this->assertInstanceOf(ExampleModel::class, $testModel);      
+        $this->assertInstanceOf(ExampleModel::class, $testModel);
         $this->assertEquals('test1', $testModel->name);
     }
 
@@ -336,5 +350,69 @@ class ModelTest extends DbTestCase
             true,
             $this->getPrivatePropertyValue($testModel, 'isNew')
         );
+    }
+    
+    /**
+     * Test has relation method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testHasRelationMethod()
+    {
+        $testTable = $this->connectToDatabase()->prepare("
+            CREATE TABLE IF NOT EXISTS test_relations (
+                id INT(11) AUTO_INCREMENT PRIMARY KEY,
+                example_id INT(11) UNSIGNED DEFAULT 0,
+                address VARCHAR(50) NOT NULL
+            );
+        ");
+
+        $testTable->execute();
+
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14);
+        ");
+
+        $addTestData->execute();
+
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO test_relations
+                (example_id, address)
+            VALUES
+                (2, 'test address 1'),
+                (1, 'test address 2'),
+                (2, 'test address 3');
+        ");
+
+        $addTestData->execute();
+
+        $testModel1 = $this->model->find(1); 
+        $relatedModels = $testModel1->relationExamples();
+
+        $this->assertEquals(1, count($relatedModels));
+        $this->assertInstanceOf(
+            RelationExampleModel::class,
+            $relatedModels[0]
+        );
+
+        $testModel2 = $this->model->find(2); 
+        $relatedModels = $testModel2->relationExamples();
+
+        $this->assertEquals(2, count($relatedModels));
+        $this->assertInstanceOf(
+            RelationExampleModel::class,
+            $relatedModels[0]
+        );
+        $this->assertInstanceOf(
+            RelationExampleModel::class,
+            $relatedModels[1]
+        );
+
+        $this->dropTestTable('test_relations');
     }
 }

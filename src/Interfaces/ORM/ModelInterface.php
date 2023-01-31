@@ -8,6 +8,13 @@ namespace SigmaPHP\DB\Interfaces\ORM;
 interface ModelInterface
 {
     /**
+     * Get table name.
+     *
+     * @return string
+     */
+    public function getTableName();
+    
+    /**
      * Create model from an array of data.
      * 
      * @param array $modelData
@@ -15,7 +22,7 @@ interface ModelInterface
      * @return object
      */
     public function create($modelData, $isNew);
-    
+        
     /**
      * Fetch all models.
      *
@@ -61,4 +68,15 @@ interface ModelInterface
      * @return bool
      */
     public function delete();
+
+    /**
+     * Get one/many models in another table 
+     * related to this model.
+     *
+     * @param Model $model
+     * @param string $foreignKey
+     * @param string $localKey
+     * @return array
+     */
+    public function hasRelation($model, $foreignKey, $localKey);
 }
