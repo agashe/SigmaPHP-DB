@@ -25,7 +25,7 @@ You can simply change the name and the location of the config file , but this wi
 php ./vendor/bin/sigma-db migrate --config=/path/to/my-config.php
 ```
 
-## Documentation
+## Documentation (in progress ...)
 - Migrations
 - Seeding
 - Query Builder
@@ -47,7 +47,7 @@ In the table below , you can find all available commands :
             <td>create:config {path}</td>
             <td>
                 Create new config file, if no path was provided , a
-                default config file (database.php) <br> will be created 
+                default config file (database.php) will be created 
                 in the root of the project's folder.
             </td>
         </tr>
@@ -55,27 +55,27 @@ In the table below , you can find all available commands :
             <td>create:migration {migration name}</td>
             <td>
                 Create new migration file. It's recommended for the migration file
-                to follow class naming <br> rules , like using only nouns and PascalCase .. etc. Also no need to add .php extension. <br>
+                to follow class naming rules , like using only nouns and PascalCase .. etc. Also no need to add .php extension.
                 It will be included automatically.
             </td>
         </tr>
         <tr>
             <td>create:seeder {seeder name}</td>
             <td>
-                Create new seeder file. Please note that , the same rules for naimg the migration file <br> is also applied to the seeder.
+                Create new seeder file. Please note that , the same rules for naimg the migration file is also applied to the seeder.
             </td>
         </tr>
         <tr>
             <td>drop</td>
             <td>
-                Drop all tables in the database. A confirmation message will ask you to confirm <br> before executing this command.
+                Drop all tables in the database. A confirmation message will ask you to confirm before executing this command.
             </td>
         </tr>
         <tr>
             <td>fresh</td>
             <td>
                 Drop all tables in the database. then will run
-                all migrations and seed the database. <br> (will ask for confirmation)
+                all migrations and seed the database. (will ask for confirmation)
             </td>
         </tr>
         <tr>
