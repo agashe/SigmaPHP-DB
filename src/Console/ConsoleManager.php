@@ -247,7 +247,7 @@ class ConsoleManager implements ConsoleManagerInterface
         These are all available commands with SigmaPHP-DB CLI Tool:
 
             create:config {path}
-                Create config file, if no path was provided , a
+                Create new config file, if no path was provided , a
                 default config file (database.php) will be created 
                 in the root of the project's folder. 
             create:migration {migration name}
@@ -257,17 +257,19 @@ class ConsoleManager implements ConsoleManagerInterface
             drop
                 Drop all tables in the database.
             fresh
-                Run migrations and seed the database.
+                Drop all tables in the database. then will run
+                all migrations and seed the database.
             help
                 Print all available commands (this menu).
-            migrate
-                Run migration files.
-            rollback
-                Rollback latest migration.
-            seed
-                Run seeders.
+            migrate {migration name}
+                Run migration/s files.
+            rollback {date}
+                Rollback latest migration. or choose specific date
+                to rollback to.
+            seed {seeder name}
+                Run seeder/s.
             version
-                Print the current version of SigmaPHP-DB Library.
+                Print the current version of SigmaPHP-DB Package.
             truncate
                 Delete the data in all tables.
 
