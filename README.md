@@ -26,7 +26,7 @@ php ./vendor/bin/sigma-db migrate --config=/path/to/my-config.php
 ```
 
 ## Documentation (in progress ...)
-- Migrations
+- [Migrations](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Migrations.md)
 - Seeding
 - Query Builder
 - ORM
@@ -55,14 +55,14 @@ In the table below , you can find all available commands :
             <td>create:migration {migration name}</td>
             <td>
                 Create new migration file. It's recommended for the migration file
-                to follow class naming rules , like using only nouns and PascalCase .. etc. Also no need to add .php extension.
-                It will be included automatically.
+                to follow class naming rules , like using only nouns and PascalCase .. etc. Also no need to add .php extension , "Migration.php".
+                will be appended automatically to the file name.
             </td>
         </tr>
         <tr>
             <td>create:seeder {seeder name}</td>
             <td>
-                Create new seeder file. Please note that , the same rules for naimg the migration file is also applied to the seeder.
+                Create new seeder file. Please note that , the same rules for naming the migration file is also applied to the seeder.
             </td>
         </tr>
         <tr>
