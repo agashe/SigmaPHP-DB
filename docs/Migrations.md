@@ -170,6 +170,42 @@ And you can find all available fields options in the table below:
                 Add comment to the field
             </td>
         </tr>
+        <tr>
+            <td>unsigned</td>
+            <td>Numeric</td>
+            <td>
+                Set numeric field as unsigned
+            </td>
+        </tr>
+        <tr>
+            <td>precision</td>
+            <td>Numeric</td>
+            <td>
+                Set the precision for numeric field
+            </td>
+        </tr>
+        <tr>
+            <td>scale</td>
+            <td>Numeric</td>
+            <td>
+                Work with the precision option for numeric field
+            </td>
+        </tr>
+        <tr>
+            <td>values</td>
+            <td>Enum</td>
+            <td>
+                Set the values for ENUM data type
+            </td>
+        </tr>
+        <tr>
+            <td>auto_update</td>
+            <td>Date and Time</td>
+            <td>
+                Set the default value for date and time fields equals to
+                CURRENT_TIMESTAMP , and also on update it will set the field's value to CURRENT_TIMESTAMP , this useful when you want to implement `updated_at` field
+            </td>
+        </tr>
     </tbody>
 </table>
 
