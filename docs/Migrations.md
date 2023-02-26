@@ -90,10 +90,90 @@ In this section you will find all methods provided by SigmaPHP-DB migrations , a
 ### Table Methods
 
 1- Create new Table: <br>
-Accept 3 parameters , first `$name` a string the table name, `$fields` a multi dimensional array and finally `$options` an associated array , contains the table option.
 
-To add a new field you add the name , type and options to the `$fields` array. SigmaPHP-DB supports all MySQL default data types for the fields.and you can find all available fields options in the table below:
+```
+$this->createTable(
+    'products',
+    [
+        ['name' => 'id', 'type' => 'bigint', 'primary' => true],
+        ['name' => 'title', 'type' => 'varchar', 'size' => 25],
+        ['name' => 'price', 'type' => 'decimal'],
+    ],
+    [
+        'engine' => 'innodb',
+        'comment' => 'this is products table'
+    ]
+);
+```
 
+Accept 3 parameters , first `$name` a string contains the table name, `$fields` a multi dimensional array for the columns and finally `$options` an associated array , contains the table options.
+
+To set the table fields , you add the name , type and options to the `$fields` array. SigmaPHP-DB supports all MySQL default data types for the fields. Here some of the common types : 
+
+* Strings : char , varchar , text , longtext , enum , blob
+* Numeric : tinyint , bool , smallint , int , bigint , float , decimal
+* Date/Time : date , datetime , timestamp , time , year 
+
+For the full list of data types , Check please the [Official MySQL Documentation](https://dev.mysql.com/doc/refman/8.0/en/data-types.html)
+
+<br>
+And you can find all available fields options in the table below:
+
+<table border>
+    <thead>
+        <tr>
+            <td>Option</td>
+            <td>Field Type</td>
+            <td>Description</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>primary</td>
+            <td>All types</td>
+            <td>
+                Select field as primary key
+            </td>
+        </tr>
+        <tr>
+            <td>size</td>
+            <td>All types</td>
+            <td>
+                Set the field's size , for both numeric and strings types 
+            </td>
+        </tr>
+        <tr>
+            <td>not_null</td>
+            <td>All types</td>
+            <td>
+                The field doesn't allow `NULL` values
+            </td>
+        </tr>
+        <tr>
+            <td>default</td>
+            <td>All types</td>
+            <td>
+                Set default value for the field
+            </td>
+        </tr>
+        <tr>
+            <td>after</td>
+            <td>All types</td>
+            <td>
+                Place the fields after another specific field
+            </td>
+        </tr>
+        <tr>
+            <td>comment</td>
+            <td>All types</td>
+            <td>
+                Add comment to the field
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br>
 In addition to fields options. Each table has 4 options:
 
 <table border>
@@ -131,20 +211,5 @@ In addition to fields options. Each table has 4 options:
     </tbody>
 </table>
 
-
-```
-$this->createTable(
-    'products',
-    [
-        ['name' => 'id', 'type' => 'bigint', 'primary' => true],
-        ['name' => 'title', 'type' => 'varchar', 'size' => 25],
-        ['name' => 'price', 'type' => 'decimal'],
-    ],
-    [
-        'engine' => 'innodb',
-        'comment' => 'this is products table'
-    ]
-);
-```
 
 
