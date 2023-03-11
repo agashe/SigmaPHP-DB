@@ -89,7 +89,7 @@ In this section you will find all methods provided by SigmaPHP-DB migrations , a
 
 ### Table Methods
 
-1- Create new Table: <br>
+1- Create new table: <br>
 
 ```
 $this->createTable(
@@ -247,5 +247,298 @@ In addition to fields options. Each table has 4 options:
     </tbody>
 </table>
 
+<br>
 
+2- Update table: <br>
 
+```
+$this->updateTable(
+    'products',
+    [
+        'comment' => 'this is products table'
+    ]
+);
+```
+This method updates the table properties only , not the fields , to update the table fields , use the columns methods. So for example you can use this method to change the the comment on the table , or the table's collation ... etc
+
+<br>
+
+3- Rename table: <br>
+
+```
+$this->renameTable(
+    'old_table_name',
+    'new_table_name'
+);
+```
+<br>
+
+4- Check if table exists in database: <br>
+
+```
+$this->checkTable('users');
+```
+<br>
+
+5- Change table's primary key: <br>
+
+```
+$this->changeTablePrimaryKey(
+    'users',
+    'old_table_primary_key',
+    'new_table_primary_key'
+);
+```
+<br>
+
+6- Drop table: <br>
+
+```
+$this->dropTable('comments');
+```
+<br>
+
+### Columns Methods
+
+<br>
+
+1- Add new column to table: <br>
+
+```
+$this->addColumn(
+    'users',
+    'phone',
+    [
+        'type' => 'varchar',
+        'size' => 25
+    ]
+);
+```
+<br>
+
+2- Update column: <br>
+
+```
+$this->updateColumn(
+    'users',
+    'phone',
+    [
+        'size' => 50,
+        'not_null' => true
+    ]
+);
+```
+<br>
+
+3- Rename column: <br>
+
+```
+$this->renameColumn(
+    'users',
+    'phone', // old field name
+    'phone_number' // new field name
+);
+```
+<br>
+
+4- Check if column exists in table: <br>
+
+```
+$this->checkColumn(
+    'users',
+    'phone'
+);
+```
+<br>
+
+5- Drop column: <br>
+
+```
+$this->dropColumn(
+    'users',
+    'phone'
+);
+```
+<br>
+
+### Index Methods
+
+<br>
+
+1- Add new index to table: <br>
+
+```
+$this->addIndex(
+    'table_name',
+    'index_name',
+    ['columns' .....],
+    'index_type',
+    ['fields_order']
+);
+```
+Where the parameters for the `addIndex` method are :
+
+<table border>
+    <tbody>
+        <tr>
+            <td>table_name</td>
+            <td>
+                The table to create the index for
+            </td>
+        </tr>
+        <tr>
+            <td>index name</td>
+            <td>
+                Set the index name
+            </td>
+        </tr>
+        <tr>
+            <td>columns</td>
+            <td>
+                The column/s to be included in the index
+            </td>
+        </tr>
+        <tr>
+            <td>index_type</td>
+            <td>
+                An index can be one of 4 types in MySQL : normal , unique , fulltext or descending
+            </td>
+        </tr>
+        <tr>
+            <td>order</td>
+            <td>
+                You can set an order for each column in the index 
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+So for example :
+```
+$this->addIndex(
+    'users',
+    'user_index',
+    ['name', 'email'],
+    'normal',
+    [
+        'name' => 'desc',
+        'email' => 'asc'
+    ]
+);
+```
+<br>
+
+2- Check if index exists in table: <br>
+
+```
+$this->checkIndex(
+    'users',
+    'user_index'
+);
+```
+
+<br>
+
+3- Drop index: <br>
+
+```
+$this->dropIndex(
+    'users',
+    'user_index'
+);
+```
+<br>
+
+### Foreign Key Methods
+<br>
+
+1- Add new foreign key to table: <br>
+
+```
+$this->addForeignKey(
+    'constraint',
+    'localTable',
+    ['localIds' ......],
+    'referenceTable',
+    ['foreignIds' ......],    
+    ['options']
+);
+```
+`addForeignKey` method accepts the following parameters :
+
+<table border>
+    <tbody>
+        <tr>
+            <td>constraint</td>
+            <td>
+                The foreign key's name
+            </td>
+        </tr>
+        <tr>
+            <td>localTable</td>
+            <td>
+                The table to create key on
+            </td>
+        </tr>
+        <tr>
+            <td>localIds</td>
+            <td>
+                The primary fields on the local table
+            </td>
+        </tr>
+        <tr>
+            <td>referenceTable</td>
+            <td>
+                The reference key , which connected by the key
+            </td>
+        </tr>
+        <tr>
+            <td>foreignIds</td>
+            <td>
+                the primary fields on the reference table
+            </td>
+        </tr>
+        <tr>
+            <td>options</td>
+            <td>
+                An array contains all the different options for the key. For example NO_ACTION on delete. 
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+So for example :
+```
+$this->addForeignKey(
+    'test_foreign_key',
+    'test',
+    'id',
+    'test2',
+    'id',
+    [
+        'on_delete' => 'NO ACTION',
+        'on_update' => 'NO ACTION',
+    ]
+);
+```
+<br>
+
+2- Check if foreign key exists in table: <br>
+
+```
+$this->checkForeignKey(
+    'users',
+    'user_foreign_key'
+);
+```
+
+<br>
+
+3- Drop foreign key: <br>
+
+```
+$this->dropForeignKey(
+    'users',
+    'user_foreign_key'
+);
+```
