@@ -477,7 +477,7 @@ $this->addForeignKey(
         <tr>
             <td>localTable</td>
             <td>
-                The table to create key on
+                The table to create the foreign key on
             </td>
         </tr>
         <tr>
@@ -489,7 +489,7 @@ $this->addForeignKey(
         <tr>
             <td>referenceTable</td>
             <td>
-                The reference key , which connected by the key
+                The referenced table , which is connected to the local table by the foreign key
             </td>
         </tr>
         <tr>
