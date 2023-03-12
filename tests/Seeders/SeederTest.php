@@ -57,6 +57,5 @@ class SeederTest extends DbTestCase
                 ->where('name', '=', 'user2')
                 ->get()['email']
         );
-
     }
 }
