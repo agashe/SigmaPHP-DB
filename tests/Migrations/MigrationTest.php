@@ -381,19 +381,10 @@ class MigrationTest extends DbTestCase
 
         $createForeignKey->execute();
 
-        $foreignKeyExists = $this->connectToDatabase()->prepare("
-            SELECT
-                CONSTRAINT_NAME
-            FROM 
-                INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
-            WHERE 
-                TABLE_NAME = 'test'
-            AND
-                CONSTRAINT_NAME = 'test_foreign_key';
-        ");
-
-        $foreignKeyExists->execute();
-        $this->assertNotEmpty($foreignKeyExists->fetch());
+        $this->assertTrue(
+            $this->migration
+                ->checkForeignKey('test', 'test_foreign_key')
+        );
 
         $this->connectToDatabase()->prepare("
             SET FOREIGN_KEY_CHECKS=0;
