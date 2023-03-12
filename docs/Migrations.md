@@ -10,7 +10,7 @@ php ./vendor/bin/sigma-db create:migration ProductsTable
 
 This command will create a new migration file "ProductsTableMigration.php" in "/path/to/your/project/database/migrations" directory.
 
-To change the default path for your migrations files , open the config file "database.php" (You can check [Configuration](https://github.com/agashe/SigmaPHP-DB/blob/master/README.md#Configurations) section , for more info).
+To change the default path for your migrations files , open the config file "database.php" (You can check the [Configurations](https://github.com/agashe/SigmaPHP-DB/blob/master/README.md#Configurations) section , for more info).
 
 Then update the migrations path , to your path of choice :
 
