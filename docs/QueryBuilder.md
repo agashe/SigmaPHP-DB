@@ -306,7 +306,7 @@ $queryBuilder->table('users')->getAll();
 ```
 <br>
 
-*15- print()* <br>
+**15- print()** <br>
 
 You can use the `print` method to print the SQL query that will be executed , this method is useful for debugging , testing and optimization. 
 
