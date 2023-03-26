@@ -28,7 +28,7 @@ php ./vendor/bin/sigma-db migrate --config=/path/to/my-config.php
 ## Documentation (in progress ...)
 - [Migrations](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Migrations.md)
 - [Seeders](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Seeders.md)
-- Query Builder
+- [Query Builder](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/QueryBuilder.md)
 - ORM
 
 ## CLI Usage
