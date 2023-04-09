@@ -29,7 +29,7 @@ php ./vendor/bin/sigma-db migrate --config=/path/to/my-config.php
 - [Migrations](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Migrations.md)
 - [Seeders](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Seeders.md)
 - [Query Builder](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/QueryBuilder.md)
-- ORM
+- [ORM](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/ORM.md)
 
 ## CLI Usage
 
