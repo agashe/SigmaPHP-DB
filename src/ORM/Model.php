@@ -2,10 +2,10 @@
 
 namespace SigmaPHP\DB\ORM;
 
-use SigmaPHP\DB\Traits\DbOperations;
 use Doctrine\Inflector\InflectorFactory;
-use SigmaPHP\DB\QueryBuilders\QueryBuilder;
 use SigmaPHP\DB\Interfaces\ORM\ModelInterface;
+use SigmaPHP\DB\QueryBuilders\QueryBuilder;
+use SigmaPHP\DB\Traits\DbOperations;
 
 /**
  * Model Class
@@ -60,7 +60,7 @@ class Model implements ModelInterface
      * Model Constructor
      */
     public function __construct(
-        $dbConnection = null, 
+        $dbConnection = null,
         $dbName = '',
         $values = [],
         $isNew = true
@@ -68,7 +68,7 @@ class Model implements ModelInterface
         $this->dbConnection = $dbConnection;
         $this->dbName = $dbName;
         $this->isNew = $isNew;
-        
+
         $this->queryBuilder = new QueryBuilder($this->dbConnection);
 
         // set table name if it wasn't provided
@@ -87,12 +87,12 @@ class Model implements ModelInterface
         if (empty($this->primary)) {
             $this->primary = 'id';
         }
-        
+
         // fetch fields
         if (empty($this->fields)) {
             $this->fields = $this->fetchTableFields($this->dbName);
         }
-        
+
         // set fields values
         if (empty($this->values)) {
             foreach ($this->fields as $field) {
@@ -106,8 +106,8 @@ class Model implements ModelInterface
                     }
                 }
 
-                $this->values[$field] = (isset($values[$field])) ? 
-                    $values[$field] : null;
+                $this->values[$field] = (isset($values[$field])) ?
+                $values[$field] : null;
             }
         }
     }
@@ -121,9 +121,9 @@ class Model implements ModelInterface
     protected function createTableName($className)
     {
         $tableName = substr(
-            $className, 
+            $className,
             (-1 * (strlen($className) - strrpos($className, '\\')))
-        );            
+        );
 
         $inflector = InflectorFactory::create()->build();
         return $inflector->pluralize($inflector->tableize($tableName));
@@ -141,9 +141,9 @@ class Model implements ModelInterface
                 GROUP_CONCAT(
                     COLUMN_NAME ORDER BY ORDINAL_POSITION ASC
                 ) AS FIELDS
-            FROM 
+            FROM
                 INFORMATION_SCHEMA.COLUMNS
-            WHERE 
+            WHERE
                 TABLE_SCHEMA = '{$this->dbName}'
             AND
                 TABLE_NAME = '{$this->table}'
@@ -154,7 +154,7 @@ class Model implements ModelInterface
 
     /**
      * Use the query builder on the model.
-     * 
+     *
      * @return object
      */
     protected function query()
@@ -164,7 +164,7 @@ class Model implements ModelInterface
 
     /**
      * Set field value.
-     * 
+     *
      * @param string $field
      * @param string $value
      * @return void
@@ -180,7 +180,7 @@ class Model implements ModelInterface
 
     /**
      * Set field value.
-     * 
+     *
      * @param string $field
      * @param string $value
      * @return void
@@ -190,7 +190,7 @@ class Model implements ModelInterface
         if (!in_array($field, $this->fields)) {
             throw new \Exception("Unknown field $field");
         }
-        
+
         return $this->values[$field];
     }
 
@@ -206,13 +206,13 @@ class Model implements ModelInterface
 
     /**
      * Create model from an array of data.
-     * 
+     *
      * @param array $modelData
      * @param bool $isNew
      * @return object
      */
     final public function create($modelData, $isNew = true)
-    {        
+    {
         return new (get_called_class())(
             $this->dbConnection,
             $this->dbName,
@@ -228,7 +228,7 @@ class Model implements ModelInterface
     final public function all()
     {
         $models = [];
-        
+
         foreach ($this->query()->getAll() as $modelData) {
             $models[] = $this->create($modelData, false);
         }
@@ -260,7 +260,7 @@ class Model implements ModelInterface
             $this->query()
                 ->where($this->primary, '=', $primaryValue)
                 ->get()
-        , false);
+            , false);
     }
 
     /**
@@ -276,11 +276,11 @@ class Model implements ModelInterface
             $this->query()
                 ->where($field, '=', $value)
                 ->get()
-        , false);
+            , false);
     }
-    
+
     /**
-     * Save model , by updating current model 
+     * Save model , by updating current model
      * or creating new one.
      *
      * @return mixed
@@ -302,13 +302,13 @@ class Model implements ModelInterface
             $this->isNew = false;
         } else {
             $this->update(
-                $this->table, 
+                $this->table,
                 $values,
                 [$this->primary => $this->values[$this->primary]]
             );
         }
     }
-    
+
     /**
      * Delete model.
      *
@@ -317,7 +317,7 @@ class Model implements ModelInterface
     final public function delete()
     {
         $this->remove(
-            $this->table, 
+            $this->table,
             [$this->primary => $this->values[$this->primary]]
         );
 
@@ -325,7 +325,7 @@ class Model implements ModelInterface
     }
 
     /**
-     * Get one/many models in another table 
+     * Get one/many models in another table
      * related to this model.
      *
      * @param Model $model
@@ -356,7 +356,7 @@ class Model implements ModelInterface
             ->getAll();
 
         $models = [];
-        
+
         foreach ($relatedModelsData as $relatedModelData) {
             $models[] = $relationModel->create($relatedModelData, false);
         }
