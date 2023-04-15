@@ -36,7 +36,11 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     public function __construct()
     {
-        $this->basePath = dirname(__DIR__, 2);
+        $this->basePath = dirname(
+            (new \ReflectionClass(
+                \Composer\Autoload\ClassLoader::class
+            ))->getFileName()
+        , 3);
     }
 
     /**
