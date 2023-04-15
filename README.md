@@ -25,7 +25,7 @@ You can simply change the name and the location of the config file , but this wi
 php ./vendor/bin/sigma-db migrate --config=/path/to/my-config.php
 ```
 
-## Documentation (in progress ...)
+## Documentation
 - [Migrations](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Migrations.md)
 - [Seeders](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Seeders.md)
 - [Query Builder](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/QueryBuilder.md)
