@@ -45,6 +45,11 @@ class Migration implements MigrationInterface
         $type = strtoupper($properties['type']);
         $fieldString .= " {$type} ";
 
+        // size option for string/numeric data types
+        if (isset($properties['size']) && !empty($properties['size'])) {
+            $fieldString .= "({$properties['size']}) ";
+        }
+
         // numeric data types options
         if (isset($properties['precision']) && 
             !empty($properties['precision']) &&
@@ -73,11 +78,7 @@ class Migration implements MigrationInterface
             $fieldString .= "({$values}) ";
         }
         
-        // general field options (for all data types)
-        if (isset($properties['size']) && !empty($properties['size'])) {
-            $fieldString .= "({$properties['size']}) ";
-        }
-        
+        // general field options (for all data types)        
         if (isset($properties['primary']) && 
             ($properties['primary'] === true)) {
             $fieldString .= " AUTO_INCREMENT ";
