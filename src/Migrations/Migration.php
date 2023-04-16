@@ -4,13 +4,14 @@ namespace SigmaPHP\DB\Migrations;
 
 use SigmaPHP\DB\Interfaces\Migrations\MigrationInterface;
 use SigmaPHP\DB\Traits\DbMethods;
+use SigmaPHP\DB\Traits\HelperMethods;
 
 /**
  * Migration Class
  */
 class Migration implements MigrationInterface
 {
-    use DbMethods;
+    use DbMethods, HelperMethods;
 
     /**
      * @var \PDO $dbConnection
@@ -68,7 +69,7 @@ class Migration implements MigrationInterface
 
         // enum and set data types options
         if (isset($properties['values']) && !empty($properties['values'])) {
-            $values = implode(',', $properties['values']);
+            $values = $this->concatenateTokens($properties['values'], true);
             $fieldString .= "({$values}) ";
         }
         

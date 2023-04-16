@@ -4,13 +4,14 @@ namespace SigmaPHP\DB\QueryBuilders;
 
 use SigmaPHP\DB\Interfaces\QueryBuilders\QueryBuilderInterface;
 use SigmaPHP\DB\Traits\DbMethods;
+use SigmaPHP\DB\Traits\HelperMethods;
 
 /**
  * QueryBuilder Class
  */
 class QueryBuilder implements QueryBuilderInterface
 {
-    use DbMethods;
+    use DbMethods, HelperMethods;
 
     /**
      * @var \PDO $dbConnection
@@ -28,31 +29,6 @@ class QueryBuilder implements QueryBuilderInterface
     public function __construct($dbConnection)
     {
         $this->dbConnection = $dbConnection;
-    }
-
-    /**
-     * Concatenate array of strings into one comma separated line.
-     * 
-     * @param array $table
-     * @return string
-     */
-    private function concatenateStrings($strings)
-    {
-        return rtrim(implode(",", $strings), ",");
-    }
-
-    /**
-     * Add quotes for string values. 
-     * 
-     * @param string $value
-     * @return string
-     */
-    private function addQuotes($value)
-    {
-        // escape if the input null , contains mysql built-in functions
-        // like date , now ...etc or it's a numeric value
-        return ((strpos($value, '(') !== false) || is_numeric($value) ||
-            $value == 'null') ? $value : "'$value'";
     }
 
     /**
@@ -88,7 +64,7 @@ class QueryBuilder implements QueryBuilderInterface
 
         $this->statement = str_replace(
             "*",
-            $this->concatenateStrings($fields),
+            $this->concatenateTokens($fields),
             $this->statement
         );
         
@@ -239,7 +215,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function orderBy($columns)
     {
-        $columns = $this->concatenateStrings($columns);
+        $columns = $this->concatenateTokens($columns);
         $this->statement .= " ORDER BY $columns ";
         return $this;
     }
@@ -252,7 +228,7 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function groupBy($columns)
     {
-        $columns = $this->concatenateStrings($columns);
+        $columns = $this->concatenateTokens($columns);
         $this->statement .= " GROUP BY $columns ";
         return $this;
     }

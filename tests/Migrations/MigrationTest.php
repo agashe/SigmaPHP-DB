@@ -28,6 +28,25 @@ class MigrationTest extends DbTestCase
             $this->dbConfigs['name']
         );
     }
+
+    /**
+     * MigrationTest TearDown
+     *
+     * @return void
+     */
+    public function tearDown(): void
+    {
+        parent::tearDown();
+
+        // drop tests table
+        $dropTestTable = $this->connectToDatabase()->prepare("
+            SET FOREIGN_KEY_CHECKS=0;
+            DROP TABLE test2;
+            SET FOREIGN_KEY_CHECKS=1;
+        ");
+
+        $dropTestTable->execute();
+    }
     
     /**
      * Test create table.
@@ -123,8 +142,8 @@ class MigrationTest extends DbTestCase
 
         // get table primary key
         $tablePrimaryKey = $this->connectToDatabase()->prepare("
-            show columns from test where `Key` = 'PRI';
-        ");
+            SHOW COLUMNS FROM test WHERE `Key` = 'PRI';
+        "); 
 
         $tablePrimaryKey->execute();   
 
@@ -274,7 +293,7 @@ class MigrationTest extends DbTestCase
         );
 
         $indexWasCreated = $this->connectToDatabase()->prepare("
-            SHOW INDEX FROM test WHERE Key_name='test_index'
+            SHOW INDEX FROM test WHERE Key_name = 'test_index'
         ");
 
         $indexWasCreated->execute();
@@ -356,12 +375,6 @@ class MigrationTest extends DbTestCase
 
         $foreignKeyExists->execute();
         $this->assertNotEmpty($foreignKeyExists->fetch());
-
-        $this->connectToDatabase()->prepare("
-            SET FOREIGN_KEY_CHECKS=0;
-            DROP TABLE test2;
-            SET FOREIGN_KEY_CHECKS=1;
-        ");
     }
     
     /**
@@ -385,12 +398,6 @@ class MigrationTest extends DbTestCase
             $this->migration
                 ->checkForeignKey('test', 'test_foreign_key')
         );
-
-        $this->connectToDatabase()->prepare("
-            SET FOREIGN_KEY_CHECKS=0;
-            DROP TABLE test2;
-            SET FOREIGN_KEY_CHECKS=1;
-        ");
     }
 
     /**
@@ -425,11 +432,5 @@ class MigrationTest extends DbTestCase
 
         $foreignKeyExists->execute();
         $this->assertEmpty($foreignKeyExists->fetch());
-
-        $this->connectToDatabase()->prepare("
-            SET FOREIGN_KEY_CHECKS=0;
-            DROP TABLE test2;
-            SET FOREIGN_KEY_CHECKS=1;
-        ");
     }
 }
