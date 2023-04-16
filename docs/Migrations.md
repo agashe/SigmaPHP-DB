@@ -160,7 +160,7 @@ And you can find all available fields options in the table below:
             <td>after</td>
             <td>All types</td>
             <td>
-                Place the fields after another specific field
+                Place the fields after another specific field (only works with addColumn)
             </td>
         </tr>
         <tr>
