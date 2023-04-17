@@ -132,7 +132,7 @@ class Migration implements MigrationInterface
      * @param array $options
      * @return void
      */
-    final public function createTable($name, $fields, $options)
+    final public function createTable($name, $fields, $options = [])
     {
         // start create table statement
         $createTableStatement = "CREATE TABLE $name";

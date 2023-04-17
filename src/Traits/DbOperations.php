@@ -3,13 +3,14 @@
 namespace SigmaPHP\DB\Traits;
 
 use SigmaPHP\DB\Traits\DbMethods;
+use SigmaPHP\DB\Traits\HelperMethods;
 
 /**
  * DB Operations Trait.
  */
 trait DbOperations
 {
-    use DbMethods;
+    use DbMethods, HelperMethods;
 
     /**
      * Insert data into table.
@@ -21,21 +22,11 @@ trait DbOperations
     public function insert($table, $data)
     {
         foreach ($data as $row) {
-            $fields = '';
-            $values = '';
-
-            $fields = implode(',', array_keys($row));
-            $values = array_values($row);
-            
-            $valuesStr = '';
-            foreach ($values as $value) {
-                $valuesStr .= (is_string($value) ? "'$value'" : $value ). ','; 
-            }
-
-            $valuesStr = rtrim($valuesStr, ',');
+            $fields = implode(',', array_keys($row));            
+            $values = $this->concatenateTokens(array_values($row), true);
 
             $this->execute("
-                INSERT INTO $table ($fields) VALUES ($valuesStr);
+                INSERT INTO $table ($fields) VALUES ($values);
             ");
         }
     }
@@ -53,7 +44,7 @@ trait DbOperations
         $updateStatement = "UPDATE $table SET ";
 
         foreach ($data as $col => $val) {
-            $val = is_string($val) ? "'$val'" : $val; 
+            $val = $this->addQuotes($val); 
             $updateStatement .= "$col = $val,";
         }
 
@@ -61,8 +52,7 @@ trait DbOperations
 
         if (isset($search) && !empty($search)) {
             $field = implode('', array_keys($search));
-            $value = implode('', array_values($search));
-            $value = is_string($value) ? "'$value'" : $value;
+            $value = $this->addQuotes(implode('', array_values($search)));
             $updateStatement .= " WHERE $field = $value;";
         }
 
@@ -82,8 +72,7 @@ trait DbOperations
         
         if (isset($search) && !empty($search)) {
             $field = implode('', array_keys($search));
-            $value = implode('', array_values($search));
-            $value = is_string($value) ? "'$value'" : $value;
+            $value = $this->addQuotes(implode('', array_values($search)));
             $condition = "$field = $value";
         }
 
