@@ -40,8 +40,56 @@ class Migration implements MigrationInterface
      */
     private function convertFieldToSql($properties)
     {
+        // validation
+        if (!isset($properties['name']) || empty($properties['name'])) {
+            throw new \Exception(
+                "Error : Field name can't be empty"
+            );
+        }
+        
+        if (!isset($properties['type']) || empty($properties['type'])) {
+            throw new \Exception(
+                "Error : Field type can't be empty"
+            );
+        }
+
+        if (in_array(strtolower($properties['type']), [
+                'char',
+                'varchar',
+                'binary',
+                'varbinary',
+                'blob'
+            ]) && 
+            (
+                !isset($properties['size']) || 
+                empty($properties['size']) ||
+                !is_numeric($properties['size'])
+            )
+        ) {
+            throw new \Exception(
+                "Error : Size property is mandatory with STRING data types"
+            );
+        }
+
+        if (in_array(strtolower($properties['type']), [
+                'enum',
+                'set'
+            ]) && 
+            (
+                !isset($properties['values']) || 
+                empty($properties['values']) ||
+                !is_array($properties['values'])
+            )
+        ) {
+            throw new \Exception(
+                "Error : Values property is mandatory with ENUM data type"
+            );
+        }
+
+        // start the field SQL statement by set the name
         $fieldString = "{$properties['name']}";
 
+        // set the field type
         $type = strtoupper($properties['type']);
         $fieldString .= " {$type} ";
 
@@ -101,6 +149,7 @@ class Migration implements MigrationInterface
             $fieldString .= " COMMENT '{$properties['comment']}' ";
         }
 
+        // end the field SQL statement 
         return $fieldString;
     }
 

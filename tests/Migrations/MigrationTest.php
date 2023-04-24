@@ -49,6 +49,42 @@ class MigrationTest extends DbTestCase
     }
     
     /**
+     * Test the different validation conditions on field creation.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCreateFieldValidation()
+    {
+        $exceptionsCount = 0;
+
+        $invalidFieldStatements = [
+            [['type' => 'varchar']],
+            [['name' => '', 'type' => 'varchar']],
+            [['name' => 'title']],
+            [['name' => 'title', 'type' => null]],
+            [['name' => 'title', 'type' => 'varchar']],
+            [['name' => 'title', 'type' => 'char', 'size' => '']],
+            [['name' => 'title', 'type' => 'blob', 'size' => 'abc']],
+            [['name' => 'title', 'type' => 'set']],
+            [['name' => 'title', 'type' => 'enum', 'values' => 555]],
+            [['name' => 'title', 'type' => 'enum', 'values' => 'abc']]
+        ];
+
+        foreach ($invalidFieldStatements as $invalidFieldStatement) {
+            try {
+                $this->migration->createTable(
+                    'my_table', $invalidFieldStatement
+                );
+            } catch (\Exception $e) {
+                $exceptionsCount += 1;
+            }
+        }
+
+        $this->assertEquals(count($invalidFieldStatements), $exceptionsCount);
+    }
+
+    /**
      * Test create table.
      *
      * @runInSeparateProcess

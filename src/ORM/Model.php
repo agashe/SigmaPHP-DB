@@ -126,7 +126,9 @@ class Model implements ModelInterface
         );
 
         $inflector = InflectorFactory::create()->build();
-        return $inflector->pluralize($inflector->tableize($tableName));
+        return $inflector->pluralize($inflector->tableize(
+            str_replace('\\', '', $tableName)
+        ));
     }
 
     /**
@@ -208,10 +210,9 @@ class Model implements ModelInterface
      * Create model from an array of data.
      *
      * @param array $modelData
-     * @param bool $isNew
      * @return object
      */
-    final public function create($modelData, $isNew = true)
+    final public function create($modelData)
     {
         return new (get_called_class())(
             $this->dbConnection,

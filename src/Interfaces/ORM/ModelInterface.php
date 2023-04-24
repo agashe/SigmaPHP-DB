@@ -18,10 +18,9 @@ interface ModelInterface
      * Create model from an array of data.
      * 
      * @param array $modelData
-     * @param bool $isNew
      * @return object
      */
-    public function create($modelData, $isNew);
+    public function create($modelData);
         
     /**
      * Fetch all models.
