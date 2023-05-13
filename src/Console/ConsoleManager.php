@@ -13,9 +13,10 @@ use SigmaPHP\DB\Migrations\Logger;
 class ConsoleManager implements ConsoleManagerInterface
 {
     /**
-     * @var string Default config file name.
+     * @var string Default config file name and extension.
      */
-    private const DEFAULT_CONFIG_FILE_NAME = 'database.php';
+    private const DEFAULT_CONFIG_FILE_NAME = 'database';
+    private const DEFAULT_CONFIG_FILE_EXTENSION = 'php';
 
     /**
      * @var array $configs
@@ -211,19 +212,19 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function loadConfigs($path = '')
     {
-        // @Todo : extract the new config file name
-
-        $configPath = $this->basePath;
+        $configFilePath = $this->basePath . '/' . 
+            self::DEFAULT_CONFIG_FILE_NAME . '.' .
+            self::DEFAULT_CONFIG_FILE_EXTENSION;
 
         if (!empty($path)) {
             if ((strpos($path, '--config=') !== false)) {
-                $configPath = str_replace('--config=', '', $path);
+                $configFilePath = str_replace('--config=', '', $path);
             } else {
                 throw new \Exception("Unknown option $path");
             }    
         }
 
-        if (!file_exists($configPath . '/' . self::DEFAULT_CONFIG_FILE_NAME)) {
+        if (!file_exists($configFilePath)) {
             $message = <<<ERROR
             No config file was found , please create new config
             file or run 'php sigma-db help' for help.
@@ -233,8 +234,7 @@ class ConsoleManager implements ConsoleManagerInterface
             exit;
         }
 
-        $this->configs = require $configPath . '/' . 
-            self::DEFAULT_CONFIG_FILE_NAME;
+        $this->configs = require $configFilePath;
     }
 
     /**
@@ -302,13 +302,32 @@ class ConsoleManager implements ConsoleManagerInterface
      * @param string $path
      * @param string $name
      * @param string $content
+     * @param string $type
+     * @param string $extension
      * @return void
      */
-    private function createFile($path, $name, $content)
-    {
+    private function createFile(
+        $path, 
+        $name, 
+        $content,
+        $type = '', 
+        $extension = 'php' 
+    ) {
+        $file = $path . '/' . $name . '.' . $extension;
+
         try {
-            file_put_contents($path . '/' . $name, $content);
-            $this->printMessage("{$name} was created successfully", "success");
+            if (file_exists($file)) {
+                $this->printMessage(
+                    "{$name} {$type} is already exists", "success"
+                );
+
+                return;
+            }
+
+            file_put_contents($file, $content);
+            $this->printMessage(
+                "{$name} {$type} was created successfully", "success"
+            );
         } catch (\Exception $e) {
             $this->printMessage("{$e}", "error");
         }
@@ -325,7 +344,8 @@ class ConsoleManager implements ConsoleManagerInterface
         $this->createFile(
             $path ?: $this->basePath,
             self::DEFAULT_CONFIG_FILE_NAME,
-            file_get_contents(__DIR__ . '/templates/database.php.dist')
+            file_get_contents(__DIR__ . '/templates/database.php.dist'),
+            'Config'
         );
     }
 
@@ -344,13 +364,14 @@ class ConsoleManager implements ConsoleManagerInterface
         $fileName = ucfirst($fileName) . 'Migration';
 
         $this->createFile(
-            $this->configs['path_to_migrations'],
-            $fileName . '.php',
+            $this->basePath . $this->configs['path_to_migrations'],
+            $fileName,
             str_replace(
                 '$fileName',
                 $fileName,
                 file_get_contents(__DIR__ . '/templates/migration.php.dist')
-            )
+            ),
+            'Migration'
         );
     }
 
@@ -369,13 +390,14 @@ class ConsoleManager implements ConsoleManagerInterface
         $fileName = ucfirst($fileName);
 
         $this->createFile(
-            $this->configs['path_to_models'],
-            $fileName . '.php',
+            $this->basePath . $this->configs['path_to_models'],
+            $fileName,
             str_replace(
                 '$fileName',
                 $fileName,
                 file_get_contents(__DIR__ . '/templates/model.php.dist')
-            )
+            ),
+            'Model'
         );
 
         // create new migration file with the model
@@ -399,13 +421,14 @@ class ConsoleManager implements ConsoleManagerInterface
         $fileName = ucfirst($fileName) . 'Seeder';
 
         $this->createFile(
-            $this->configs['path_to_seeders'],
-            $fileName . '.php',
+            $this->basePath . $this->configs['path_to_seeders'],
+            $fileName,
             str_replace(
                 '$fileName',
                 $fileName,
                 file_get_contents(__DIR__ . '/templates/seeder.php.dist')
-            )
+            ),
+            'Seeder'
         );
     }
 
