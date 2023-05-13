@@ -23,7 +23,10 @@
         "phpunit/phpunit": "^9.5"
     },
     "scripts": {
-        "test": "./vendor/bin/phpunit tests/"
+        "init": "cp src/Console/templates/database.php.dist database.php",
+        "exec": "./vendor/bin/phpunit tests/",
+        "clean": "rm database.php",
+        "test": "composer run init ; composer run exec ; composer run clean"
     },
     "bin": "bin/sigma-db"
 }

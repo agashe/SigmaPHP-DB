@@ -1,0 +1,8 @@
+<?php
+
+use SigmaPHP\DB\ORM\Model;
+
+class $fileName extends Model 
+{
+    // Your model's methods and relations goes here
+}

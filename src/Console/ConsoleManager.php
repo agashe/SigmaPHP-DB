@@ -3,6 +3,7 @@
 namespace SigmaPHP\DB\Console;
 
 use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
+use Doctrine\Inflector\InflectorFactory;
 use SigmaPHP\DB\Connectors\Connector;
 use SigmaPHP\DB\Migrations\Logger;
 
@@ -74,6 +75,10 @@ class ConsoleManager implements ConsoleManagerInterface
 
             case 'create:migration':
                 $this->createMigrationFile($argument);
+                break;
+
+            case 'create:model':
+                $this->createModelFile($argument);
                 break;
 
             case 'create:seeder':
@@ -206,6 +211,8 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function loadConfigs($path = '')
     {
+        // @Todo : extract the new config file name
+
         $configPath = $this->basePath;
 
         if (!empty($path)) {
@@ -256,6 +263,9 @@ class ConsoleManager implements ConsoleManagerInterface
                 in the root of the project's folder. 
             create:migration {migration name}
                 Create migration file.
+            create:model {model name}
+                Create model file. This command will generate
+                in addition a new migration file automatically.
             create:seeder {seeder name}
                 Create seeder file. 
             drop
@@ -342,6 +352,36 @@ class ConsoleManager implements ConsoleManagerInterface
                 file_get_contents(__DIR__ . '/templates/migration.php.dist')
             )
         );
+    }
+
+    /**
+     * Create new model file with migration file.
+     * 
+     * @param string $fileName
+     * @return void
+     */
+    private function createModelFile($fileName)
+    {
+        if (!is_dir($this->configs['path_to_models'])) {
+            mkdir($this->configs['path_to_models'], 0755, true);
+        }
+
+        $fileName = ucfirst($fileName);
+
+        $this->createFile(
+            $this->configs['path_to_models'],
+            $fileName . '.php',
+            str_replace(
+                '$fileName',
+                $fileName,
+                file_get_contents(__DIR__ . '/templates/model.php.dist')
+            )
+        );
+
+        // create new migration file with the model
+        $inflector = InflectorFactory::create()->build();
+        $migrationFileName = $inflector->pluralize($fileName);
+        $this->createMigrationFile("Create{$migrationFileName}Table");
     }
 
     /**
