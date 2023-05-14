@@ -238,6 +238,36 @@ class ConsoleManager implements ConsoleManagerInterface
     }
 
     /**
+     * Extract files names from dir.
+     *
+     * @param string $path
+     * @return array
+     */
+    private function getFilesNames($path)
+    {
+        if (!file_exists($path)) {
+            $this->printMessage(
+                "{$path} doesn't exists", "error"
+            );
+
+            return;
+        }
+
+        $filesNames = [];
+
+        if ($handle = opendir($path)) {
+            while (($file = readdir($handle))) {
+                if (in_array($file, ['.', '..'])) continue;
+                $filesNames[] = str_replace('.php', '', $file);   
+            }
+            
+            closedir($handle);
+        }
+
+        return $filesNames;
+    }
+
+    /**
      * Print framework version.
      * 
      * @return void
@@ -441,47 +471,36 @@ class ConsoleManager implements ConsoleManagerInterface
     private function migrate($migrationName = '')
     {
         $migrations = [];
+
+        if (!empty($migrationName)) {
+            $migrations[] = $migrationName;
+        } else {
+            $migrations = $this->getFilesNames(
+                $this->basePath . $this->configs['path_to_migrations']
+            );
+        }
+
         $logger = new Logger(
             $this->getDbConnection(),
             $this->configs['logs_table_name']
         );
 
-        if (!empty($migrationName)) {
-            if (!empty($logger->canBeMigrated([$migrationName]))) {
-                $migrations[] = $migrationName;
-            } else {
-                $this->printMessage(
-                    "{$migrationName} was already migrated.",
-                    "error"
-                );
+        $migrations = $logger->canBeMigrated($migrations);
 
-                return;
-            }
-        } else {
-            if ($handle = opendir($this->configs['path_to_migrations'])) {
-                while (($file = readdir($handle))) {
-                    if (in_array($file, ['.', '..'])) continue;
-                    $migrations[] = str_replace('.php', '', $file);   
-                }
-                
-                closedir($handle);
-            }
+        if (empty($migrations)) {
+            $this->printMessage(
+                "All migrations were already run , " .
+                "Nothing to be migrated.",
+                "error"
+            );
 
-            $migrations = $logger->canBeMigrated($migrations);
-
-            if (empty($migrations)) {
-                $this->printMessage(
-                    "Nothing to be migrated.",
-                    "error"
-                );
-
-                return;
-            }
+            return;
         }
 
         foreach ($migrations as $migration) {
-            require_once $this->configs['path_to_migrations'] . 
-                '/' . $migration . '.php';
+            require_once $this->basePath .
+                $this->configs['path_to_migrations'] .
+                "/{$migration}.php";
             
             $migrationClass = new $migration(
                 $this->getDbConnection(),
@@ -490,6 +509,11 @@ class ConsoleManager implements ConsoleManagerInterface
             
             $migrationClass->up();
             $logger->log($migration);
+
+            $this->printMessage(
+                "{$migration} was migrated successfully.",
+                "success"
+            );
         }
 
         $this->printMessage(
@@ -512,8 +536,9 @@ class ConsoleManager implements ConsoleManagerInterface
         );
 
         foreach ($logger->canBeRolledBack($date) as $migration) {
-            require_once $this->configs['path_to_migrations'] . 
-                '/' . $migration . '.php';
+            require_once $this->basePath .
+                $this->configs['path_to_migrations'] .
+                "/{$migration}.php";
             
             $migrationClass = new $migration(
                 $this->getDbConnection(),
@@ -522,6 +547,11 @@ class ConsoleManager implements ConsoleManagerInterface
             
             $migrationClass->down();
             $logger->removeLog($migration);
+
+            $this->printMessage(
+                "{$migration} was rolledback successfully.",
+                "success"
+            );
         }
 
         $this->printMessage("Database rolled back successfully.", "success");
@@ -538,33 +568,28 @@ class ConsoleManager implements ConsoleManagerInterface
         $seeders = [];
 
         if (!empty($seederName)) {
-            if (file_exists(
-                $this->configs['path_to_seeders'] . "/" . $seederName . '.php'
-            )) {
-                $seeders[] = $seederName;
-            } else {
-                throw new \Exception("Seeder '$seederName' doesn't exist!");
-            }
+            $seeders[] = $seederName;
         } else {            
-            if ($handle = opendir($this->configs['path_to_seeders'])) {
-                while (($file = readdir($handle))) {
-                    if (in_array($file, ['.', '..'])) continue;
-                    $seeders[] = str_replace('.php', '', $file);   
-                }
-                
-                closedir($handle);
-            }
+            $seeders = $this->getFilesNames(
+                $this->basePath . $this->configs['path_to_seeders']
+            );
         }
 
         foreach ($seeders as $seeder) {
-            require_once $this->configs['path_to_seeders'] . 
-                '/' . $seeder . '.php';
+            require_once $this->basePath .
+                $this->configs['path_to_seeders'] .
+                "/{$seeder}.php";
 
             $seed = new $seeder(
                 $this->getDbConnection()
             );
 
             $seed->run();
+
+            $this->printMessage(
+                "{$seeder} was run successfully.",
+                "success"
+            );
         }
 
         $this->printMessage("All seeders ran successfully.", "success");
