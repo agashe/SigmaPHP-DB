@@ -15,9 +15,10 @@ trait HelperMethods
      */
     public function addQuotes($value)
     {
-        // exclude the null / numeric / SQL functions
+        // exclude the null / numeric / SQL functions and constants
         return (
             (strpos($value, '(') !== false) || 
+            (strtoupper($value) == 'CURRENT_TIMESTAMP') || 
             strtolower($value) == 'null' ||
             is_numeric($value)) ? $value : "'$value'";
     }

@@ -63,9 +63,6 @@ class MigrationTest extends DbTestCase
             [['name' => '', 'type' => 'varchar']],
             [['name' => 'title']],
             [['name' => 'title', 'type' => null]],
-            [['name' => 'title', 'type' => 'varchar']],
-            [['name' => 'title', 'type' => 'char', 'size' => '']],
-            [['name' => 'title', 'type' => 'blob', 'size' => 'abc']],
             [['name' => 'title', 'type' => 'set']],
             [['name' => 'title', 'type' => 'enum', 'values' => 555]],
             [['name' => 'title', 'type' => 'enum', 'values' => 'abc']]
@@ -105,6 +102,79 @@ class MigrationTest extends DbTestCase
         
         $this->assertTrue($this->checkTableExists('my_table'));
         $this->assertEquals(2, count($this->getTableFields('my_table')));
+
+        $this->dropTestTable('my_table');
+    }
+
+    /**
+     * Test custom data type.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testCustomDataType()
+    {
+        $this->migration->createTable(
+            'my_table', [
+                ['name' => 'soft_deletes'],
+                ['name' => 'timestamps']
+            ],
+        );
+
+        $fieldsCount = $this->connectToDatabase()->prepare("
+            SELECT
+                COLUMN_NAME
+            FROM 
+                INFORMATION_SCHEMA.COLUMNS
+            WHERE 
+                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
+            AND
+                TABLE_NAME = 'my_table'
+            AND
+                COLUMN_NAME IN ('deleted_at', 'created_at', 'updated_at')
+        ");
+        
+        $fieldsCount->execute();
+
+        $this->assertEquals(
+            3,
+            count($fieldsCount->fetchAll())
+        );
+
+        $this->dropTestTable('my_table');
+    }
+
+    /**
+     * Test string data types fields have default size if was not provided.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testStringDataTypesFieldsHaveDefaultSizeIfWasNotProvided()
+    {
+        $this->migration->createTable(
+            'my_table', [['name' => 'title', 'type' => 'varchar']],
+        );
+
+        $fieldSize = $this->connectToDatabase()->prepare("
+            SELECT
+                CHARACTER_MAXIMUM_LENGTH
+            FROM 
+                INFORMATION_SCHEMA.COLUMNS
+            WHERE 
+                TABLE_SCHEMA = '{$this->dbConfigs['name']}'
+            AND
+                TABLE_NAME = 'my_table'
+            AND
+                COLUMN_NAME = 'title'
+        ");
+        
+        $fieldSize->execute();
+
+        $this->assertEquals(
+            255,
+            $fieldSize->fetch()['CHARACTER_MAXIMUM_LENGTH']
+        );
 
         $this->dropTestTable('my_table');
     }

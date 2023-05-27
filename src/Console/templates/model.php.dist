@@ -2,7 +2,7 @@
 
 use SigmaPHP\DB\ORM\Model;
 
-class $fileName extends Model 
+class $className extends Model 
 {
     // Your model's methods and relations goes here
 }

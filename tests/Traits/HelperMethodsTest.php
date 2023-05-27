@@ -87,6 +87,19 @@ class HelperMethodsTest extends DbTestCase
     }
     
     /**
+     * Test no quotes are added to SQL constants.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testNoQuotesAreAddedToSqlConstants()
+    {
+        $this->assertEquals('CURRENT_TIMESTAMP', 
+            $this->testTrait->addQuotes('CURRENT_TIMESTAMP')
+        );
+    }
+    
+    /**
      * Test no quotes are added to null value.
      *
      * @runInSeparateProcess

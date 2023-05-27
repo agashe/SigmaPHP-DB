@@ -2,7 +2,7 @@
 
 use SigmaPHP\DB\Seeders\Seeder;
 
-class $fileName extends Seeder
+class $className extends Seeder
 {
     /**
      * @return void

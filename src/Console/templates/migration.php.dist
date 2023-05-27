@@ -2,7 +2,7 @@
 
 use SigmaPHP\DB\Migrations\Migration;
 
-class $fileName extends Migration
+class $className extends Migration
 {
     /**
      * @return void

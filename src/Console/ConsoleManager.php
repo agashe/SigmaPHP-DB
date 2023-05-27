@@ -34,6 +34,11 @@ class ConsoleManager implements ConsoleManagerInterface
     private $dbConnector;
 
     /**
+     * @var Doctrine\Inflector\InflectorFactory $inflector
+     */
+    private $inflector;
+
+    /**
      * ConsoleManager Constructor
      */
     public function __construct()
@@ -43,6 +48,8 @@ class ConsoleManager implements ConsoleManagerInterface
                 \Composer\Autoload\ClassLoader::class
             ))->getFileName()
         , 3);
+
+        $this->inflector = InflectorFactory::create()->build();
     }
 
     /**
@@ -387,21 +394,79 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createMigrationFile($fileName)
     {
-        if (!is_dir($this->configs['path_to_migrations'])) {
-            mkdir($this->configs['path_to_migrations'], 0755, true);
+        $migrationFilesPath = $this->basePath . 
+            $this->configs['path_to_migrations'];
+
+        if (!is_dir($migrationFilesPath)) {
+            mkdir($migrationFilesPath, 0755, true);
         }
 
-        $fileName = ucfirst($fileName) . 'Migration';
+        $template = '';
+        $tableName = '';
+        $fileType = 'Migration';
+        $className = ucfirst($fileName) . $fileType;
 
+        switch ($fileName) {
+            case (bool) preg_match('/Create[a-zA-Z]*Table/', $fileName):                
+                $tableName = $this->inflector->pluralize(
+                    $this->inflector->tableize(
+                        preg_replace(
+                            ['/Create/', '/Table/'], '', $fileName
+                        )
+                    )
+                );
+
+                $template = str_replace(
+                    ['$className', '$tableName'],
+                    [$className, $tableName],
+                    file_get_contents(
+                        __DIR__ . '/templates/create_table_migration.php.dist'
+                    )
+                );
+
+                break;
+            case (bool) preg_match(
+                    '/AddColumn[a-zA-Z]*To[a-zA-Z]*Table/', 
+                    $fileName
+                ):
+
+                // we use this small hack to get the column and table names :)
+                $migrationFileNameParts = explode('To', $fileName);
+                
+                $tableName = $this->inflector->pluralize(
+                    $this->inflector->tableize(
+                        preg_replace(
+                            ['/Table/'], '', $migrationFileNameParts[1]
+                        )
+                    )
+                );
+
+                $fieldName = lcfirst(preg_replace(
+                    ['/AddColumn/'], '', $migrationFileNameParts[0]
+                ));
+
+                $template = str_replace(
+                    ['$className', '$tableName', '$fieldName'],
+                    [$className, $tableName, $fieldName],
+                    file_get_contents(
+                        __DIR__ . '/templates/add_column_migration.php.dist'
+                    )
+                );
+
+                break;
+            default:
+                $template = str_replace(
+                    '$className',
+                    $className,
+                    file_get_contents(__DIR__ . '/templates/migration.php.dist')
+                );
+        }
+        
         $this->createFile(
-            $this->basePath . $this->configs['path_to_migrations'],
-            $fileName,
-            str_replace(
-                '$fileName',
-                $fileName,
-                file_get_contents(__DIR__ . '/templates/migration.php.dist')
-            ),
-            'Migration'
+            $migrationFilesPath,
+            $className,
+            $template,
+            $fileType
         );
     }
 
@@ -413,24 +478,28 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createModelFile($fileName)
     {
-        if (!is_dir($this->configs['path_to_models'])) {
-            mkdir($this->configs['path_to_models'], 0755, true);
+        $modelsFilesPath = $this->basePath . 
+            $this->configs['path_to_models'];
+
+        if (!is_dir($modelsFilesPath)) {
+            mkdir($modelsFilesPath, 0755, true);
         }
 
-        $fileName = ucfirst($fileName);
+        $fileType = 'Model';
+        $className = ucfirst($fileName);
 
         $this->createFile(
-            $this->basePath . $this->configs['path_to_models'],
-            $fileName,
+            $modelsFilesPath,
+            $className,
             str_replace(
-                '$fileName',
-                $fileName,
+                '$className',
+                $className,
                 file_get_contents(__DIR__ . '/templates/model.php.dist')
             ),
-            'Model'
+            $fileType
         );
 
-        // create new migration file with the model
+        // create new migration file for the model
         $inflector = InflectorFactory::create()->build();
         $migrationFileName = $inflector->pluralize($fileName);
         $this->createMigrationFile("Create{$migrationFileName}Table");
@@ -444,21 +513,25 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createSeeder($fileName)
     {
-        if (!is_dir($this->configs['path_to_seeders'])) {
-            mkdir($this->configs['path_to_seeders'], 0755, true);
+        $seedersFilesPath = $this->basePath . 
+            $this->configs['path_to_seeders'];
+
+        if (!is_dir($seedersFilesPath)) {
+            mkdir($seedersFilesPath, 0755, true);
         }
 
-        $fileName = ucfirst($fileName) . 'Seeder';
+        $fileType = 'Seeder';
+        $className = ucfirst($fileName) . $fileType;
 
         $this->createFile(
-            $this->basePath . $this->configs['path_to_seeders'],
-            $fileName,
+            $seedersFilesPath,
+            $className,
             str_replace(
-                '$fileName',
-                $fileName,
+                '$className',
+                $className,
                 file_get_contents(__DIR__ . '/templates/seeder.php.dist')
             ),
-            'Seeder'
+            $fileType
         );
     }
 

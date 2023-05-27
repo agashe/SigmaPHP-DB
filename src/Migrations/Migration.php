@@ -54,26 +54,8 @@ class Migration implements MigrationInterface
         }
 
         if (in_array(strtolower($properties['type']), [
-                'char',
-                'varchar',
-                'binary',
-                'varbinary',
-                'blob'
-            ]) && 
-            (
-                !isset($properties['size']) || 
-                empty($properties['size']) ||
-                !is_numeric($properties['size'])
-            )
-        ) {
-            throw new \Exception(
-                "Error : Size property is mandatory with STRING data types"
-            );
-        }
-
-        if (in_array(strtolower($properties['type']), [
-                'enum',
-                'set'
+            'enum',
+            'set'
             ]) && 
             (
                 !isset($properties['values']) || 
@@ -86,11 +68,34 @@ class Migration implements MigrationInterface
             );
         }
 
+        // set default size for string data types
+        if (in_array(strtolower($properties['type']), [
+                'char',
+                'varchar',
+                'binary',
+                'varbinary',
+                'blob'
+            ]) && 
+            (
+                !isset($properties['size']) || 
+                empty($properties['size']) ||
+                !is_numeric($properties['size'])
+            )
+        ) {
+            $properties['size'] = 255;
+        }
+
         // start the field SQL statement by set the name
         $fieldString = "{$properties['name']}";
 
         // set the field type
         $type = strtoupper($properties['type']);
+
+        // handle the UUID primary key
+        if ($type == 'UUID') {
+            $type = ' CHAR(36) ';
+        }
+
         $fieldString .= " {$type} ";
 
         // size option for string/numeric data types
@@ -115,7 +120,7 @@ class Migration implements MigrationInterface
 
         // date data types options
         if (isset($properties['auto_update']) && 
-            !empty($properties['auto_update'])) {
+            ($properties['auto_update'] === true)) {
             $fieldString .=
                 " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ";
         }
@@ -128,7 +133,9 @@ class Migration implements MigrationInterface
         
         // general field options (for all data types)        
         if (isset($properties['primary']) && 
-            ($properties['primary'] === true)) {
+            ($properties['primary'] === true) &&
+            (strtoupper($properties['type']) != 'UUID')
+        ) {
             $fieldString .= " AUTO_INCREMENT ";
         }
 
@@ -138,7 +145,8 @@ class Migration implements MigrationInterface
         }
 
         if (isset($properties['default']) && !empty($properties['default'])) {
-            $fieldString .= " DEFAULT '{$properties['default']}' ";
+            $defaultValue = $this->addQuotes($properties['default']);
+            $fieldString .= " DEFAULT {$defaultValue} ";
         }
 
         if (isset($properties['after']) && !empty($properties['after'])) {
@@ -147,6 +155,11 @@ class Migration implements MigrationInterface
 
         if (isset($properties['comment']) && !empty($properties['comment'])) {
             $fieldString .= " COMMENT '{$properties['comment']}' ";
+        }
+
+        // handle uuid type default value
+        if (strtoupper($properties['type']) == 'UUID') {
+            $fieldString .= " DEFAULT (UUID()) ";
         }
 
         // end the field SQL statement 
@@ -191,10 +204,36 @@ class Migration implements MigrationInterface
         $primaryKey = '';
         
         foreach ($fields as $field) {
-            $tableFields .= $this->convertFieldToSql($field) . ',';
+            // set the structure for custom field data types
+            // or create regular types
+            if ($field['name'] == 'soft_deletes') {
+                $tableFields .= $this->convertFieldToSql([
+                    'name' => 'deleted_at', 
+                    'type' => 'timestamp'
+                ]) . ',';
+            }
+            else if ($field['name'] == 'timestamps') {
+                $tableFields .= $this->convertFieldToSql([
+                    'name' => 'created_at', 
+                    'type' => 'timestamp',
+                    'default' => 'CURRENT_TIMESTAMP'
+                ]) . ',';
 
-            if (isset($field['primary']) && 
-                ($field['primary'] === true)) {
+                $tableFields .= $this->convertFieldToSql([
+                    'name' => 'updated_at', 
+                    'type' => 'timestamp',
+                    'auto_update' => true
+                ]) . ',';
+            } else {
+                $tableFields .= $this->convertFieldToSql($field) . ',';
+            }
+
+            // if the primary property was set true for the field
+            // or it's of the type UUID , set the field as primary key
+            if ((isset($field['primary']) && ($field['primary'] === true)) ||
+                (isset($field['type']) && 
+                (strtolower($field['type']) == 'uuid'))    
+            ) {
                 $primaryKey = $field['name'];
             }
         }
@@ -230,6 +269,7 @@ class Migration implements MigrationInterface
         }
 
         $createTableStatement .= ";";
+        // var_dump($createTableStatement);exit;
 
         // run create table statement
         $this->execute($createTableStatement);
