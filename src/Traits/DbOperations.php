@@ -21,14 +21,20 @@ trait DbOperations
      */
     public function insert($table, $data)
     {
+        $fields = '';
+        $values = '';
+        
         foreach ($data as $row) {
             $fields = implode(',', array_keys($row));            
-            $values = $this->concatenateTokens(array_values($row), true);
-
-            $this->execute("
-                INSERT INTO $table ($fields) VALUES ($values);
-            ");
+            $values .= 
+                '(' . $this->concatenateTokens(array_values($row), true) . '),';
         }
+
+        $values = rtrim($values, ',');
+
+        $this->execute("
+            INSERT INTO $table ($fields) VALUES {$values};
+        ");
     }
     
     /**

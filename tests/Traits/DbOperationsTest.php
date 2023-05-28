@@ -88,8 +88,10 @@ class DbOperationsTest extends DbTestCase
             ]
         );
 
+        // insert method uses batch insert , so it returns only 
+        // the PK value for the first inserted row only :(
         $this->assertEquals(
-            3, 
+            1, 
             $this->testTrait->getLatestInsertedRowPrimaryKeyValue()  
         );
     }

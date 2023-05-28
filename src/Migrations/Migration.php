@@ -216,7 +216,7 @@ class Migration implements MigrationInterface
 
         // add fields        
         $tableFields = '';
-        $primaryKey = '';
+        $primaryKey  = '';
         
         foreach ($fields as $field) {
             // set the structure for custom field data types
