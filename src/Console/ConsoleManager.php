@@ -13,9 +13,13 @@ use SigmaPHP\DB\Migrations\Logger;
 class ConsoleManager implements ConsoleManagerInterface
 {
     /**
-     * @var string Default config file name and extension.
+     * @var string Default config file name
      */
     private const DEFAULT_CONFIG_FILE_NAME = 'database';
+
+    /**
+     * @var string Default config file extension
+     */
     private const DEFAULT_CONFIG_FILE_EXTENSION = 'php';
 
     /**

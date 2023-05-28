@@ -32,6 +32,16 @@ trait DbOperations
     }
     
     /**
+     * Get the newly inserted row's primary key value.
+     * 
+     * @return void
+     */
+    public function getLatestInsertedRowPrimaryKeyValue()
+    {
+        return $this->fetchColumn("SELECT LAST_INSERT_ID()")[0];
+    }
+    
+    /**
      * Update data in table.
      * 
      * @param string $table

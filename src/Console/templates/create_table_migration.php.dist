@@ -13,7 +13,10 @@ class $className extends Migration
             '$tableName',
             [
                 ['name' => 'id', 'type' => 'bigint', 'primary' => true],
-                // add your columns,
+                /**
+                 * add your columns !
+                 */
+                ['name' => 'timestamps']
             ]
         );
     }

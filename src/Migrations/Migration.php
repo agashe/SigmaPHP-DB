@@ -14,6 +14,21 @@ class Migration implements MigrationInterface
     use DbMethods, HelperMethods;
 
     /**
+     * @var string default field name for soft deletes
+     */
+    protected const DEFAULT_SOFT_DELETES_FIELD_NAME = 'deleted_at';
+
+    /**
+     * @var string default field name for created at timestamps
+     */
+    protected const DEFAULT_TIMESTAMPS_CREATED_AT_FIELD_NAME = 'created_at';
+    
+    /**
+     * @var string default field name for updated at timestamps
+     */
+    protected const DEFAULT_TIMESTAMPS_UPDATED_AT_FIELD_NAME = 'updated_at';
+
+    /**
      * @var \PDO $dbConnection
      */
     private $dbConnection;
@@ -208,19 +223,19 @@ class Migration implements MigrationInterface
             // or create regular types
             if ($field['name'] == 'soft_deletes') {
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => 'deleted_at', 
+                    'name' => self::DEFAULT_SOFT_DELETES_FIELD_NAME, 
                     'type' => 'timestamp'
                 ]) . ',';
             }
             else if ($field['name'] == 'timestamps') {
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => 'created_at', 
+                    'name' => self::DEFAULT_TIMESTAMPS_CREATED_AT_FIELD_NAME, 
                     'type' => 'timestamp',
                     'default' => 'CURRENT_TIMESTAMP'
                 ]) . ',';
 
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => 'updated_at', 
+                    'name' => self::DEFAULT_TIMESTAMPS_UPDATED_AT_FIELD_NAME, 
                     'type' => 'timestamp',
                     'auto_update' => true
                 ]) . ',';

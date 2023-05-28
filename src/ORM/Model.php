@@ -163,6 +163,21 @@ class Model implements ModelInterface
     {
         return $this->queryBuilder->table($this->table);
     }
+    
+    /**
+     * Convert array to model instance.
+     *
+     * @param array $modelData
+     * @return object
+     */
+    protected function createModelInstance($modelData)
+    {
+        return new (get_called_class())(
+            $this->dbConnection,
+            $this->dbName,
+            $modelData
+        );
+    }
 
     /**
      * Set field value.
@@ -207,18 +222,19 @@ class Model implements ModelInterface
     }
 
     /**
-     * Create model from an array of data.
+     * Create model from an array of data. 
+     * This method doesn't only create new instance of the model 
+     * but save it also.
      *
      * @param array $modelData
      * @return object
      */
     final public function create($modelData)
     {
-        return new (get_called_class())(
-            $this->dbConnection,
-            $this->dbName,
-            $modelData
-        );
+        $model = $this->createModelInstance($modelData);
+        $model->save();
+
+        return $model;
     }
 
     /**
@@ -231,7 +247,7 @@ class Model implements ModelInterface
         $models = [];
 
         foreach ($this->query()->getAll() as $modelData) {
-            $models[] = $this->create($modelData, false);
+            $models[] = $this->createModelInstance($modelData);
         }
 
         return $models;
@@ -257,11 +273,11 @@ class Model implements ModelInterface
      */
     final public function find($primaryValue)
     {
-        return $this->create(
+        return $this->createModelInstance(
             $this->query()
                 ->where($this->primary, '=', $primaryValue)
                 ->get()
-            , false);
+            );
     }
 
     /**
@@ -273,11 +289,11 @@ class Model implements ModelInterface
      */
     final public function findBy($field, $value)
     {
-        return $this->create(
+        return $this->createModelInstance(
             $this->query()
                 ->where($field, '=', $value)
                 ->get()
-            , false);
+            );
     }
 
     /**
@@ -300,11 +316,14 @@ class Model implements ModelInterface
 
         if ($this->isNew) {
             $this->insert($this->table, [$values]);
+            $this->values[$this->primary] = 
+                $this->getLatestInsertedRowPrimaryKeyValue();
             $this->isNew = false;
         } else {
             $this->update(
                 $this->table,
                 $values,
+                // this might condition if we have condition !!
                 [$this->primary => $this->values[$this->primary]]
             );
         }
@@ -322,6 +341,7 @@ class Model implements ModelInterface
             [$this->primary => $this->values[$this->primary]]
         );
 
+        // remove the PK value from the model
         $this->isNew = true;
     }
 

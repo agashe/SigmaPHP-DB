@@ -72,6 +72,29 @@ class DbOperationsTest extends DbTestCase
     }
 
     /**
+     * Test get the newly inserted row's primary key value.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testGetTheNewlyInsertedRowsPrimaryKeyValue()
+    {
+        $this->testTrait->insert(
+            'test',
+            [
+                ['name' => 'user1', 'email' => 'email1'],
+                ['name' => 'user2', 'email' => 'email2'],
+                ['name' => 'user3', 'email' => 'email3'],
+            ]
+        );
+
+        $this->assertEquals(
+            3, 
+            $this->testTrait->getLatestInsertedRowPrimaryKeyValue()  
+        );
+    }
+
+    /**
      * Test update data in table.
      *
      * @runInSeparateProcess

@@ -148,6 +148,7 @@ class ModelTest extends DbTestCase
         ]);
 
         $this->assertInstanceOf(ExampleModel::class, $tempModel);
+        $this->assertEquals('1', $tempModel->id);
         $this->assertEquals('test1', $tempModel->name);
         $this->assertEquals('test1@test.local', $tempModel->email);
         $this->assertEquals(15, $tempModel->age);
@@ -274,6 +275,7 @@ class ModelTest extends DbTestCase
         $dataWasSaved->execute();
         
         $this->assertEquals(1, $dataWasSaved->fetch()['id']);
+        $this->assertEquals(1, $this->model->id);
         $this->assertEquals(
             false,
             $this->getPrivatePropertyValue($this->model, 'isNew')
