@@ -14,9 +14,9 @@ class Migration implements MigrationInterface
     use DbMethods, HelperMethods;
 
     /**
-     * @var string default field name for soft deletes
+     * @var string default field name for soft delete
      */
-    protected const DEFAULT_SOFT_DELETES_FIELD_NAME = 'deleted_at';
+    protected const DEFAULT_SOFT_DELETE_FIELD_NAME = 'deleted_at';
 
     /**
      * @var string default field name for created at timestamps
@@ -221,9 +221,9 @@ class Migration implements MigrationInterface
         foreach ($fields as $field) {
             // set the structure for custom field data types
             // or create regular types
-            if ($field['name'] == 'soft_deletes') {
+            if ($field['name'] == 'soft_delete') {
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => self::DEFAULT_SOFT_DELETES_FIELD_NAME, 
+                    'name' => self::DEFAULT_SOFT_DELETE_FIELD_NAME, 
                     'type' => 'timestamp'
                 ]) . ',';
             }

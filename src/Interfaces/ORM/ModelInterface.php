@@ -64,7 +64,7 @@ interface ModelInterface
     /**
      * Delete model.
      *
-     * @return bool
+     * @return void
      */
     public function delete();
 

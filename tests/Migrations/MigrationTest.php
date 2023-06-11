@@ -116,7 +116,7 @@ class MigrationTest extends DbTestCase
     {
         $this->migration->createTable(
             'my_table', [
-                ['name' => 'soft_deletes'],
+                ['name' => 'soft_delete'],
                 ['name' => 'timestamps']
             ],
         );

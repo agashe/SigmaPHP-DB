@@ -2,10 +2,11 @@
 
 namespace SigmaPHP\DB\ORM;
 
-use Doctrine\Inflector\InflectorFactory;
-use SigmaPHP\DB\Interfaces\ORM\ModelInterface;
-use SigmaPHP\DB\QueryBuilders\QueryBuilder;
+use SigmaPHP\DB\Traits\SoftDelete;
 use SigmaPHP\DB\Traits\DbOperations;
+use Doctrine\Inflector\InflectorFactory;
+use SigmaPHP\DB\QueryBuilders\QueryBuilder;
+use SigmaPHP\DB\Interfaces\ORM\ModelInterface;
 
 /**
  * Model Class
@@ -57,6 +58,25 @@ class Model implements ModelInterface
     protected $isNew;
 
     /**
+     * @var string $softDeleteFieldName
+     */
+    protected $softDeleteFieldName;
+
+    /**
+     * @var bool $fetchTrashed
+     * this flag will allow trashed models to 
+     * be returned with queries results 
+     */
+    protected $fetchTrashed;
+
+    /**
+     * @var bool $fetchTrashedWithQuery
+     * this flag is temporary and will be reset
+     * after each query
+     */
+    protected $fetchTrashedWithQuery;
+
+    /**
      * Model Constructor
      */
     public function __construct(
@@ -86,6 +106,22 @@ class Model implements ModelInterface
         // set primary key
         if (empty($this->primary)) {
             $this->primary = 'id';
+        }
+
+        // set soft delete field name
+        if (empty($this->softDeleteFieldName)) {
+            $this->softDeleteFieldName = 'deleted_at';
+        }
+        
+        // set fetch trashed models flag
+        if (empty($this->fetchTrashed) && $this->fetchTrashed !== true) {
+            $this->fetchTrashed = false;
+        }
+
+        // set fetch trashed models with query flag
+        if (empty($this->fetchTrashedWithQuery) && 
+            $this->fetchTrashedWithQuery !== true) {
+            $this->fetchTrashedWithQuery = false;
         }
 
         // fetch fields
@@ -178,6 +214,18 @@ class Model implements ModelInterface
             $modelData
         );
     }
+    
+    /**
+     * Check if model is using soft delete.
+     *
+     * @return bool
+     */
+    protected function isUsingSoftDelete()
+    {
+        return in_array(SoftDelete::class, array_values(
+            class_uses(get_called_class())
+        ));
+    }
 
     /**
      * Set field value.
@@ -245,10 +293,21 @@ class Model implements ModelInterface
     final public function all()
     {
         $models = [];
+        $query = $this->query();
 
-        foreach ($this->query()->getAll() as $modelData) {
+        if ($this->isUsingSoftDelete() && 
+            $this->fetchTrashed == false &&
+            $this->fetchTrashedWithQuery == false
+        ) {
+            $query->where($this->softDeleteFieldName, 'IS', 'NULL');
+        }
+
+        foreach ($query->getAll() as $modelData) {
             $models[] = $this->createModelInstance($modelData);
         }
+
+        // disable query return trash flag
+        $this->fetchTrashedWithQuery = false;
 
         return $models;
     }
@@ -260,9 +319,20 @@ class Model implements ModelInterface
      */
     final public function count()
     {
-        return $this->query()
-            ->select(['count(*) as rows_count'])
-            ->get()['rows_count'];
+        $query = $this->query()
+            ->select(['count(*) as rows_count']);
+
+        if ($this->isUsingSoftDelete() && 
+            $this->fetchTrashed == false &&
+            $this->fetchTrashedWithQuery == false
+        ) {
+            $query->where($this->softDeleteFieldName, 'IS', 'NULL');
+        }
+
+        // disable query return trash flag
+        $this->fetchTrashedWithQuery = false;
+
+        return $query->get()['rows_count'];
     }
 
     /**
@@ -273,11 +343,22 @@ class Model implements ModelInterface
      */
     final public function find($primaryValue)
     {
+        $query = $this->query()
+            ->where($this->primary, '=', $primaryValue);
+
+        if ($this->isUsingSoftDelete() && 
+            $this->fetchTrashed == false &&
+            $this->fetchTrashedWithQuery == false
+        ) {
+            $query->andWhere($this->softDeleteFieldName, 'IS', 'NULL');
+        }
+
+        // disable query return trash flag
+        $this->fetchTrashedWithQuery = false;
+
         return $this->createModelInstance(
-            $this->query()
-                ->where($this->primary, '=', $primaryValue)
-                ->get()
-            );
+            $query->get()
+        );
     }
 
     /**
@@ -289,11 +370,22 @@ class Model implements ModelInterface
      */
     final public function findBy($field, $value)
     {
+        $query = $this->query()
+            ->where($field, '=', $value);
+
+        if ($this->isUsingSoftDelete() && 
+            $this->fetchTrashed == false &&
+            $this->fetchTrashedWithQuery == false
+        ) {
+            $query->andWhere($this->softDeleteFieldName, 'IS', 'NULL');
+        }
+
+        // disable query return trash flag
+        $this->fetchTrashedWithQuery = false;
+
         return $this->createModelInstance(
-            $this->query()
-                ->where($field, '=', $value)
-                ->get()
-            );
+            $query->get()
+        );
     }
 
     /**
@@ -332,16 +424,23 @@ class Model implements ModelInterface
     /**
      * Delete model.
      *
-     * @return bool
+     * @return void
      */
     final public function delete()
     {
-        $this->remove(
-            $this->table,
-            [$this->primary => $this->values[$this->primary]]
-        );
+        if ($this->isUsingSoftDelete()) {
+            $this->trash();
+        } else {
+            $this->remove(
+                $this->table,
+                [$this->primary => $this->values[$this->primary]]
+            );
+            
+            // remove the PK value from the model
+            $this->values[$this->primary] = null;
+        }
 
-        // remove the PK value from the model
+        // mark the model as new
         $this->isNew = true;
     }
 

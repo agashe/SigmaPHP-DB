@@ -20,12 +20,33 @@ class QueryBuilderTest extends DbTestCase
      */
     public function setUp(): void
     {
-        parent::setUp();
+        // Please Note : we don't need to create test table
+        // before each test case , so we override the setup
+        // ans tearDown methods
+        
+        // add your database configs to phpunit.xml
+        $this->dbConfigs = [
+            'host' => $GLOBALS['DB_HOST'],
+            'name' => $GLOBALS['DB_NAME'],
+            'user' => $GLOBALS['DB_USER'],
+            'pass' => $GLOBALS['DB_PASS'],
+            'port' => $GLOBALS['DB_PORT']
+        ];
         
         // create new query builder instance
         $this->queryBuilder = new QueryBuilder(
             $this->connectToDatabase()
         );
+    }
+
+    /**
+     * QueryBuilderTest TearDown
+     *
+     * @return void
+     */
+    public function tearDown(): void
+    {
+        // override DbTestCase TearDown method
     }
     
     /**
