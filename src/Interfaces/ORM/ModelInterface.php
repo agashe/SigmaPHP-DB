@@ -30,6 +30,13 @@ interface ModelInterface
     public function all();
 
     /**
+     * Fetch first model.
+     *
+     * @return Model|null
+     */
+    public function first();
+
+    /**
      * Count all models.
      *
      * @return int
@@ -52,6 +59,47 @@ interface ModelInterface
      * @return array
      */
     public function findBy($field, $value);
+
+    /**
+     * Where query on models.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    public function where($field, $operator, $value);
+
+    /**
+     * And where query on models.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    public function andWhere($field, $operator, $value);
+
+    /**
+     * Or where query on models.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    public function orWhere($field, $operator, $value);
+
+    /**
+     * Where condition on model's relations.
+     *
+     * @param string $relation
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    public function whereHas($relation, $field, $operator, $value);
     
     /**
      * Save model , by updating current model 

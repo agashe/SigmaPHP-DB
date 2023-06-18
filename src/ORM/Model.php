@@ -28,11 +28,6 @@ class Model implements ModelInterface
     private $dbName;
 
     /**
-     * @var QueryBuilder $queryBuilder
-     */
-    private $queryBuilder;
-
-    /**
      * @var string $table
      */
     protected $table;
@@ -75,7 +70,21 @@ class Model implements ModelInterface
      * after each query
      */
     protected $fetchTrashedWithQuery;
+    
+    /**
+     * @var array $conditions
+     * an array by all where conditions implemented
+     * on the models
+     */
+    protected $conditions;
 
+    /**
+     * @var array $relations
+     * an array by all relations details of the model
+     * like table name, foreign key and local key
+     */
+    protected $relations;
+    
     /**
      * Model Constructor
      */
@@ -88,8 +97,6 @@ class Model implements ModelInterface
         $this->dbConnection = $dbConnection;
         $this->dbName = $dbName;
         $this->isNew = $isNew;
-
-        $this->queryBuilder = new QueryBuilder($this->dbConnection);
 
         // set table name if it wasn't provided
         if (empty($this->table)) {
@@ -107,10 +114,15 @@ class Model implements ModelInterface
         if (empty($this->primary)) {
             $this->primary = 'id';
         }
-
+        
         // set soft delete field name
         if (empty($this->softDeleteFieldName)) {
             $this->softDeleteFieldName = 'deleted_at';
+        }
+
+        // set conditions
+        if (empty($this->conditions)) {
+            $this->conditions = [];
         }
         
         // set fetch trashed models flag
@@ -191,20 +203,21 @@ class Model implements ModelInterface
     }
 
     /**
-     * Use the query builder on the model.
+     * Create new instance of query builder to use with the model.
      *
-     * @return object
+     * @return QueryBuilder
      */
     protected function query()
     {
-        return $this->queryBuilder->table($this->table);
+        $queryBuilder = new QueryBuilder($this->dbConnection);
+        return $queryBuilder->table($this->table);
     }
     
     /**
      * Convert array to model instance.
      *
      * @param array $modelData
-     * @return object
+     * @return Model
      */
     protected function createModelInstance($modelData)
     {
@@ -225,6 +238,129 @@ class Model implements ModelInterface
         return in_array(SoftDelete::class, array_values(
             class_uses(get_called_class())
         ));
+    }
+        
+    /**
+     * Set a new condition on model's query.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @param string $type
+     * @return void
+     */
+    protected function setCondition(
+        $field,
+        $operator,
+        $value,
+        $type = '',
+        $relation = '',
+    ) {
+        $this->conditions[] = [
+            'field' => $field, 
+            'operator' => $operator, 
+            'value' => $value,
+            'type' => (!empty($type)) ? $type : (
+                (empty($this->conditions)) ? 'default' : 'and'
+            ),
+            'relation' => $relation,
+        ];
+    }
+
+    /**
+     * Process model's query conditions.
+     *
+     * @param QueryBuilder $query
+     * @return void
+     */
+    protected function processQueryConditions(&$query)
+    {
+        // check soft delete condition
+        if ($this->isUsingSoftDelete() && 
+            $this->fetchTrashed == false &&
+            $this->fetchTrashedWithQuery == false
+        ) {
+            $this->setCondition(
+                $this->softDeleteFieldName, 'IS', 'NULL'
+            );
+        }
+
+        // apply the conditions
+        foreach ($this->conditions as $condition) {
+            switch ($condition['type']) {
+                case 'default':
+                    $query->where(
+                        $condition['field'],
+                        $condition['operator'],
+                        $condition['value']
+                    );
+                    break;
+                case 'and':
+                    $query = $query->andWhere(
+                        $condition['field'],
+                        $condition['operator'],
+                        $condition['value']
+                    );
+                    break;
+                case 'or':
+                    $query = $query->orWhere(
+                        $condition['field'],
+                        $condition['operator'],
+                        $condition['value']
+                    );
+                    break;
+                case 'has':
+                    if (
+                        method_exists(
+                            get_called_class(), 
+                            $condition['relation']
+                        )
+                    ) {
+                        // boot the relation model , to fetch its details
+                        $loadRelationModel = $this->{$condition['relation']}();
+
+                        $relation = $this->relations[
+                            $condition['relation']
+                        ];
+
+                        $query
+                            ->join(
+                                $relation['table'],
+                                $relation['table'] . '.' . 
+                                    $relation['foreign_key'],
+                                '=',
+                                $this->getTableName() . '.' . 
+                                    $relation['local_key'],
+                            );
+
+                        if (
+                            !empty($condition['field']) &&
+                            !empty($condition['operator']) &&
+                            !empty($condition['value'])
+                        ) {
+                            $query->where(
+                                $relation['table'] . '.' . $condition['field'],
+                                $condition['operator'],
+                                $condition['value']
+                            );
+                        }
+
+                        $query->distinct();
+                    } else {
+                        throw new \Exception(
+                            "Relation {$condition['relation']} not found in
+                             model " . get_called_class()
+                        );
+                    }
+                    break;
+            }
+        }
+
+        // clear all conditions
+        $this->conditions = [];
+
+        // disable query return trash flag
+        $this->fetchTrashedWithQuery = false;
     }
 
     /**
@@ -293,23 +429,40 @@ class Model implements ModelInterface
     final public function all()
     {
         $models = [];
-        $query = $this->query();
+        $query = $this->query()
+            ->select([$this->getTableName() . '.*']);
 
-        if ($this->isUsingSoftDelete() && 
-            $this->fetchTrashed == false &&
-            $this->fetchTrashedWithQuery == false
-        ) {
-            $query->where($this->softDeleteFieldName, 'IS', 'NULL');
-        }
+        $this->processQueryConditions($query);
 
         foreach ($query->getAll() as $modelData) {
             $models[] = $this->createModelInstance($modelData);
         }
 
-        // disable query return trash flag
-        $this->fetchTrashedWithQuery = false;
-
         return $models;
+    }
+
+    /**
+     * Fetch first model.
+     *
+     * @return Model|null
+     */
+    final public function first()
+    {
+        $model = null;
+        $query = $this->query()
+            ->select([$this->getTableName() . '.*']);
+
+        $this->processQueryConditions($query);
+        
+        $result = $query->get();
+
+        if (!empty($result)) {
+            $model = $this->createModelInstance(
+                $result
+            );
+        }
+
+        return $model;
     }
 
     /**
@@ -319,18 +472,13 @@ class Model implements ModelInterface
      */
     final public function count()
     {
-        $query = $this->query()
-            ->select(['count(*) as rows_count']);
+        $query = $this->query()->select([
+            'count(distinct ' .
+                $this->getTableName() . '.' . $this->primary .
+            ') as rows_count'
+        ]);
 
-        if ($this->isUsingSoftDelete() && 
-            $this->fetchTrashed == false &&
-            $this->fetchTrashedWithQuery == false
-        ) {
-            $query->where($this->softDeleteFieldName, 'IS', 'NULL');
-        }
-
-        // disable query return trash flag
-        $this->fetchTrashedWithQuery = false;
+        $this->processQueryConditions($query);
 
         return $query->get()['rows_count'];
     }
@@ -343,18 +491,13 @@ class Model implements ModelInterface
      */
     final public function find($primaryValue)
     {
-        $query = $this->query()
-            ->where($this->primary, '=', $primaryValue);
-
-        if ($this->isUsingSoftDelete() && 
-            $this->fetchTrashed == false &&
-            $this->fetchTrashedWithQuery == false
-        ) {
-            $query->andWhere($this->softDeleteFieldName, 'IS', 'NULL');
-        }
-
-        // disable query return trash flag
-        $this->fetchTrashedWithQuery = false;
+        $query = $this->query();
+        
+        $this->setCondition(
+            $this->primary, '=', $primaryValue
+        );
+        
+        $this->processQueryConditions($query);
 
         return $this->createModelInstance(
             $query->get()
@@ -370,22 +513,90 @@ class Model implements ModelInterface
      */
     final public function findBy($field, $value)
     {
-        $query = $this->query()
-            ->where($field, '=', $value);
-
-        if ($this->isUsingSoftDelete() && 
-            $this->fetchTrashed == false &&
-            $this->fetchTrashedWithQuery == false
-        ) {
-            $query->andWhere($this->softDeleteFieldName, 'IS', 'NULL');
-        }
-
-        // disable query return trash flag
-        $this->fetchTrashedWithQuery = false;
+        $query = $this->query();
+        
+        $this->setCondition(
+            $field, '=', $value
+        );
+        
+        $this->processQueryConditions($query);
 
         return $this->createModelInstance(
             $query->get()
         );
+    }
+
+    /**
+     * Where query on models.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    final public function where($field, $operator, $value)
+    {        
+        $this->setCondition(
+            $field, $operator, $value
+        );
+        
+        return $this;
+    }
+    
+    /**
+     * And where query on models.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    final public function andWhere($field, $operator, $value)
+    {
+        $this->setCondition(
+            $field, $operator, $value, 'and'
+        );
+        
+        return $this;
+    }
+
+    /**
+     * Or where query on models.
+     *
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    final public function orWhere($field, $operator, $value)
+    {
+        $this->setCondition(
+            $field, $operator, $value, 'or'
+        );
+        
+        return $this;
+    }
+
+    /**
+     * Where condition on model's relations.
+     *
+     * @param string $relation
+     * @param string $field
+     * @param string $operator
+     * @param string $value
+     * @return object
+     */
+    final public function whereHas(
+        $relation, 
+        $field = '', 
+        $operator = '', 
+        $value = ''
+    ) {        
+        $this->setCondition(
+            $field, $operator, $value, 'has', $relation
+        );
+        
+        return $this;
     }
 
     /**
@@ -459,6 +670,17 @@ class Model implements ModelInterface
             $this->dbConnection,
             $this->dbName
         );
+        
+        // save the relation details
+        $relationName = debug_backtrace()[1]['function'];
+
+        if (!isset($this->relations[$relationName])) {
+            $this->relations[$relationName] = [
+                'table' => $relationModel->getTableName(),
+                'foreign_key' => $foreignKey,
+                'local_key' => $localKey,
+            ];
+        }
 
         $relatedModelsData = $this->query()
             ->select([$relationModel->getTableName() . '.*'])

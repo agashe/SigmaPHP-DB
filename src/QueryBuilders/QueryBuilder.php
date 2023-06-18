@@ -305,6 +305,9 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function print()
     {
+        // print here
         return rtrim($this->statement) . ";";
     }
+
+    // ToDo : clear the last query after execution
 }

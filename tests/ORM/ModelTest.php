@@ -185,6 +185,31 @@ class ModelTest extends DbTestCase
     }
     
     /**
+     * Test first method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testFirstMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13), 
+                ('test2', 'test2@test.local', 14), 
+                ('test3', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model->first();
+        
+        $this->assertInstanceOf(ExampleModel::class, $testModel);
+        $this->assertEquals(13, $testModel->age);
+    }
+    
+    /**
      * Test count method.
      *
      * @runInSeparateProcess
@@ -254,6 +279,160 @@ class ModelTest extends DbTestCase
 
         $this->assertInstanceOf(ExampleModel::class, $testModel);
         $this->assertEquals('test1', $testModel->name);
+    }
+    
+    /**
+     * Test where method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testWhereMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 11), 
+                ('test2', 'test2@test.local', 12), 
+                ('test3', 'test2@test.local', 13), 
+                ('test4', 'test2@test.local', 14), 
+                ('test5', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModels = $this->model->where('age', '>=', 13)->all();
+
+        $this->assertEquals(3, count($testModels));
+    }
+
+    /**
+     * Test and where method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testAndWhereMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 11), 
+                ('test2', 'test2@test.local', 12), 
+                ('test3', 'test2@test.local', 13), 
+                ('test4', 'test2@test.local', 14), 
+                ('test5', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model
+            ->where('age', '>=', 13)
+            ->andWhere('name', '=', 'test1')
+            ->first();
+
+        $this->assertEmpty($testModel);
+    }
+    
+    /**
+     * Test or where method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testOrWhereMethod()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 11), 
+                ('test2', 'test2@test.local', 12), 
+                ('test3', 'test2@test.local', 13), 
+                ('test4', 'test2@test.local', 14), 
+                ('test5', 'test3@test.local', 15); 
+        ");
+
+        $addTestData->execute();
+
+        $testModelsCount = $this->model
+            ->where('age', '>=', 13)
+            ->orWhere('name', '=', 'test1')
+            ->count();
+
+        $this->assertEquals(4, $testModelsCount);
+    }
+
+    /**
+     * Test where has method.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testWhereHasMethod()
+    {
+        $testTable = $this->connectToDatabase()->prepare("
+            CREATE TABLE IF NOT EXISTS test_relations (
+                id INT(11) AUTO_INCREMENT PRIMARY KEY,
+                example_id INT(11) UNSIGNED DEFAULT 0,
+                address VARCHAR(50) NOT NULL
+            );
+        ");
+
+        $testTable->execute();
+
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO example_models
+                (name, email, age)
+            VALUES
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14),
+                ('test3', 'test3@test.local', 15);
+        ");
+
+        $addTestData->execute();
+
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO test_relations
+                (example_id, address)
+            VALUES
+                (2, 'test address 1'),
+                (1, 'test address 2'),
+                (2, 'test address 3');
+        ");
+
+        $addTestData->execute();
+
+        $testModelsHasRelationCount = $this->model->whereHas(
+            'relationExamples'
+        )->count();
+
+        $this->assertEquals(2, $testModelsHasRelationCount);
+
+        $this->dropTestTable('test_relations');
+    }
+
+    /**
+     * Test where has throws exception if the relation does not exists.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testWhereHasThrowsExceptionIfTheRelationDoesNotExists()
+    {
+        $this->expectException(\Exception::class);
+        
+        // create instance of model that has relations method
+        $testModel = new RelationExampleModel(
+            $this->connectToDatabase(),
+            $this->dbConfigs['name']
+        );
+
+        $getModelByRelation = $this->model->whereHas(
+            'relationDoesNotExists'
+        )->first();
     }
 
     /**
