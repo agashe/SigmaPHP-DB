@@ -2,6 +2,7 @@
 
 use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\Migrations\Migration;
+use SigmaPHP\DB\Exceptions\InvalidArgumentException;
 
 /**
  * Migration Test
@@ -59,22 +60,24 @@ class MigrationTest extends DbTestCase
         $exceptionsCount = 0;
 
         $invalidFieldStatements = [
-            [['type' => 'varchar']],
-            [['name' => '', 'type' => 'varchar']],
-            [['name' => 'title']],
-            [['name' => 'title', 'type' => null]],
-            [['name' => 'title', 'type' => 'set']],
-            [['name' => 'title', 'type' => 'enum', 'values' => 555]],
-            [['name' => 'title', 'type' => 'enum', 'values' => 'abc']]
+            ['type' => 'varchar'],
+            ['name' => '', 'type' => 'varchar'],
+            ['name' => 'title'],
+            ['name' => 'title', 'type' => null],
+            ['name' => 'title', 'type' => 'set'],
+            ['name' => 'title', 'type' => 'enum', 'values' => 555],
+            ['name' => 'title', 'type' => 'enum', 'values' => 'abc']
         ];
 
         foreach ($invalidFieldStatements as $invalidFieldStatement) {
             try {
                 $this->migration->createTable(
-                    'my_table', $invalidFieldStatement
+                    'my_table', [$invalidFieldStatement]
                 );
             } catch (\Exception $e) {
-                $exceptionsCount += 1;
+                if ($e instanceof InvalidArgumentException) {
+                    $exceptionsCount += 1;
+                }
             }
         }
 

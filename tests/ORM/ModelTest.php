@@ -1,6 +1,7 @@
 <?php
 
 use SigmaPHP\DB\TestCases\DbTestCase;
+use SigmaPHP\DB\Exceptions\NotFoundException;
 
 require('ExampleModel.php');
 require('RelationExampleModel.php');
@@ -108,15 +109,45 @@ class ModelTest extends DbTestCase
     }
     
     /**
-     * Test throws exception if field does not exists.
+     * Test throws exception if table does not exists.
      *
      * @runInSeparateProcess
      * @return void
      */
-    public function testThrowsExceptionIfFieldDoesNotExists()
+    public function testThrowsExceptionIfTableDoesNotExists()
     {
-        $this->expectException(\Exception::class);
-        $this->model->gender = 'hello';
+        $this->expectException(NotFoundException::class);
+        
+        $this->dropTestTable('example_models');
+        
+        $testModel = new ExampleModel(
+            $this->connectToDatabase(),
+            $this->dbConfigs['name']
+        );
+    }
+
+    /**
+     * Test throws exception if you tried to set field that does not exists.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testThrowsExceptionIfYouTriedToSetFieldThatDoesNotExists()
+    {
+        $this->expectException(NotFoundException::class);
+        $this->model->gender = 'male';
+    }
+    
+    /**
+     * Test throws exception if you tried to get field that does not exists.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testThrowsExceptionIfYouTriedToGetFieldThatDoesNotExists()
+    {
+        $this->expectException(NotFoundException::class);
+        $gender = $this->model->gender;
     }
 
     /**
@@ -422,7 +453,7 @@ class ModelTest extends DbTestCase
      */
     public function testWhereHasThrowsExceptionIfTheRelationDoesNotExists()
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(NotFoundException::class);
         
         // create instance of model that has relations method
         $testModel = new RelationExampleModel(

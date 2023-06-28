@@ -6,6 +6,7 @@ use SigmaPHP\DB\Traits\SoftDelete;
 use SigmaPHP\DB\Traits\DbOperations;
 use Doctrine\Inflector\InflectorFactory;
 use SigmaPHP\DB\QueryBuilders\QueryBuilder;
+use SigmaPHP\DB\Exceptions\NotFoundException;
 use SigmaPHP\DB\Interfaces\ORM\ModelInterface;
 
 /**
@@ -105,7 +106,7 @@ class Model implements ModelInterface
 
         // check if table exists
         if (!$this->tableExists($this->dbName, $this->table)) {
-            throw new \Exception(
+            throw new NotFoundException(
                 "Error : table {$this->table} doesn't exist"
             );
         }
@@ -347,7 +348,7 @@ class Model implements ModelInterface
 
                         $query->distinct();
                     } else {
-                        throw new \Exception(
+                        throw new NotFoundException(
                             "Relation {$condition['relation']} not found in
                              model " . get_called_class()
                         );
@@ -373,7 +374,7 @@ class Model implements ModelInterface
     final public function __set($field, $value)
     {
         if (!in_array($field, $this->fields)) {
-            throw new \Exception("Unknown field $field");
+            throw new NotFoundException("Unknown field $field");
         }
 
         $this->values[$field] = $value;
@@ -389,7 +390,7 @@ class Model implements ModelInterface
     final public function __get($field)
     {
         if (!in_array($field, $this->fields)) {
-            throw new \Exception("Unknown field $field");
+            throw new NotFoundException("Unknown field $field");
         }
 
         return $this->values[$field];

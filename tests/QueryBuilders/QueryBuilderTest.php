@@ -2,6 +2,7 @@
 
 use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\QueryBuilders\QueryBuilder;
+use SigmaPHP\DB\Exceptions\InvalidArgumentException;
 
 /**
  * QueryBuilder Test
@@ -92,6 +93,21 @@ class QueryBuilderTest extends DbTestCase
                 ->select(['name', 'age'])
                 ->print()
         );
+    }
+
+    /**
+     * Test throws exception if fields is not of type array.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testThrowsExceptionIfFieldsIsNotOfTypeArray()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->queryBuilder
+            ->table('test')
+            ->select('name as n')
+            ->print();
     }
     
     /**

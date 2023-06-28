@@ -2,9 +2,10 @@
 
 namespace SigmaPHP\DB\QueryBuilders;
 
-use SigmaPHP\DB\Interfaces\QueryBuilders\QueryBuilderInterface;
+use SigmaPHP\DB\Exceptions\InvalidArgumentException;
 use SigmaPHP\DB\Traits\DbMethods;
 use SigmaPHP\DB\Traits\HelperMethods;
+use SigmaPHP\DB\Interfaces\QueryBuilders\QueryBuilderInterface;
 
 /**
  * QueryBuilder Class
@@ -57,7 +58,7 @@ class QueryBuilder implements QueryBuilderInterface
         }
 
         if (!is_array($fields)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 "Fields should be of type array"
             );
         }
@@ -305,9 +306,6 @@ class QueryBuilder implements QueryBuilderInterface
      */
     final public function print()
     {
-        // print here
         return rtrim($this->statement) . ";";
     }
-
-    // ToDo : clear the last query after execution
 }

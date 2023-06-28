@@ -2,10 +2,12 @@
 
 namespace SigmaPHP\DB\Console;
 
-use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
-use Doctrine\Inflector\InflectorFactory;
-use SigmaPHP\DB\Connectors\Connector;
+use SigmaPHP\DB\Exceptions\InvalidArgumentException;
 use SigmaPHP\DB\Migrations\Logger;
+use SigmaPHP\DB\Connectors\Connector;
+use Doctrine\Inflector\InflectorFactory;
+use SigmaPHP\DB\Exceptions\InvalidConfigurationException;
+use SigmaPHP\DB\Interfaces\Console\ConsoleManagerInterface;
 
 /**
  * Console Manager Class
@@ -140,7 +142,7 @@ class ConsoleManager implements ConsoleManagerInterface
         if (!isset($this->configs['database_connection']) ||
             empty($this->configs['database_connection'])
         ) {
-            throw new \Exception(
+            throw new InvalidConfigurationException(
                 'Couldn\'t connect to the DB , no configs were provided!'
             );
         }
@@ -231,7 +233,7 @@ class ConsoleManager implements ConsoleManagerInterface
             if ((strpos($path, '--config=') !== false)) {
                 $configFilePath = str_replace('--config=', '', $path);
             } else {
-                throw new \Exception("Unknown option $path");
+                throw new InvalidArgumentException("Unknown option $path");
             }    
         }
 

@@ -2,6 +2,7 @@
 
 namespace SigmaPHP\DB\Migrations;
 
+use SigmaPHP\DB\Exceptions\InvalidArgumentException;
 use SigmaPHP\DB\Interfaces\Migrations\MigrationInterface;
 use SigmaPHP\DB\Traits\DbMethods;
 use SigmaPHP\DB\Traits\HelperMethods;
@@ -57,13 +58,13 @@ class Migration implements MigrationInterface
     {
         // validation
         if (!isset($properties['name']) || empty($properties['name'])) {
-            throw new \Exception(
+            throw new InvalidArgumentException(
                 "Error : Field name can't be empty"
             );
         }
         
         if (!isset($properties['type']) || empty($properties['type'])) {
-            throw new \Exception(
+            throw new InvalidArgumentException(
                 "Error : Field type can't be empty"
             );
         }
@@ -78,7 +79,7 @@ class Migration implements MigrationInterface
                 !is_array($properties['values'])
             )
         ) {
-            throw new \Exception(
+            throw new InvalidArgumentException(
                 "Error : Values property is mandatory with ENUM data type"
             );
         }
@@ -221,13 +222,14 @@ class Migration implements MigrationInterface
         foreach ($fields as $field) {
             // set the structure for custom field data types
             // or create regular types
-            if ($field['name'] == 'soft_delete') {
+            if ((isset($field['name'])) && ($field['name'] == 'soft_delete')) {
                 $tableFields .= $this->convertFieldToSql([
                     'name' => self::DEFAULT_SOFT_DELETE_FIELD_NAME, 
                     'type' => 'timestamp'
                 ]) . ',';
             }
-            else if ($field['name'] == 'timestamps') {
+            else if ((isset($field['name'])) && 
+                ($field['name'] == 'timestamps')) {
                 $tableFields .= $this->convertFieldToSql([
                     'name' => self::DEFAULT_TIMESTAMPS_CREATED_AT_FIELD_NAME, 
                     'type' => 'timestamp',
