@@ -19,7 +19,27 @@ class User extends Model
 ```
 <br>
 
-Then you can use your model in your code , the model's constructor requires 2 parameters , first a PDO connection instance , second the database name :
+For efficiency , the SigmaPHP-DB CLI tool provide a command to create a new model. So in your terminal run the following command : 
+
+```
+php ./vendor/bin/sigma-db create:model Product
+```
+<br>
+
+Please note : this command will also generate a new migration file to create that table for that model , and it will set the table name automatically.
+
+The model and the migration file both will be created in the default path for the models and the path for  migrations , to change these paths , open the config file "database.php" , and update the paths :
+
+```
+'path_to_migrations' => '/path/to/my/migrations',
+...
+'path_to_models' => '/path/to/my/Models',
+```
+<br>
+
+(You can check the [Configurations](https://github.com/agashe/SigmaPHP-DB/blob/master/README.md#Configurations) section , For more info)
+
+To use your newly created model , the model's constructor requires 2 parameters , first a PDO connection instance , second the database name :
 
 *(Please Note : the database credentials is just an example)*
 
@@ -140,6 +160,9 @@ echo $newUser->name;
 ```
 <?php
 
+// fetch single model
+$users = $userModel->first();
+
 // fetch all models
 $users = $userModel->all();
 
@@ -151,6 +174,36 @@ $user = $userModel->find(5);
 
 // search user by field
 $user = $userModel->findBy('age', 35);
+```
+<br>
+
+You can also use `where` conditions in your model to build complex queries : 
+
+```
+<?php
+
+// basic where
+$user = $userModel->where('email', '=', 'test@testing.com')->first();
+
+// and where
+$usersCount = $userModel
+    ->where('age', '>=', 35)
+    ->andWhere('gender', '=', 'male')
+    ->count();
+
+// or where
+$users = $userModel
+    ->where('name', 'like', '%test%')
+    ->orWhere('role', '=', 'admin')
+    ->all();
+
+// search models by relation
+$user = $userModel
+    ->whereHas('posts', 'published_at', 'is', 'null')
+    ->first();
+
+// also you can just check if a model has relation
+$users = $userModel->whereHas('posts')->all();
 ```
 <br>
 
@@ -182,6 +235,88 @@ $user = $userModel->find(15);
 
 // 2- call the delete method on it
 $user->delete();
+```
+<br>
+
+## Soft Delete
+
+The ORM supports soft delete for models , to apply the soft delete on your model , first you need to make sure , that a `deleted_at` field was added to the table.
+
+(You can check the Migration section for more info about the soft delete field)
+
+All remaining now , is to use the SoftDelete trait into your model :
+
+```
+<?php
+
+namespace MyApp\Models;
+
+use SigmaPHP\DB\ORM\Model;
+use SigmaPHP\DB\Traits\SoftDelete;
+
+class Product extends Model
+{
+    use SoftDelete;
+}
+
+```
+<br>
+
+Now you're ready to use the soft delete , the default `delete` will automatically use the soft delete field.
+
+```
+<?php
+
+$product = $productModel->find(7);
+
+// this will only update the deleted_at field
+$product->delete();
+```
+<br>
+
+The SoftDelete trait also add multiple useful methods to work with the soft deleted models :
+
+```
+<?php
+
+// by default all soft models won't appear in the search results
+// we use `withTrashed` method to return the soft deleted model in the results
+
+$allProducts = $productModel->withTrashed()->all();
+
+// to check if model is soft deleted 
+$isDeleted = $productModel->isTrashed();
+
+// to restore a soft deleted model 
+$product = $productModel->isTrashed();
+
+// to fetch only soft deleted models
+$onlyTrashedProducts = $productModel->onlyTrashed()->all();
+
+// to delete a soft deleted model permanently you will set the
+// `$forceHardDelete` option to true in the delete method
+$product->delete(true);
+
+```
+<br>
+
+Finally you can allow all of your queries to always return soft deleted models by setting the `fetchTrashed` property to true in the model :
+
+```
+<?php
+
+namespace MyApp\Models;
+
+use SigmaPHP\DB\ORM\Model;
+use SigmaPHP\DB\Traits\SoftDelete;
+
+class Product extends Model
+{
+    use SoftDelete;
+
+    protected $fetchTrashed = true;
+}
+
 ```
 <br>
 

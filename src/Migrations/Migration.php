@@ -286,7 +286,6 @@ class Migration implements MigrationInterface
         }
 
         $createTableStatement .= ";";
-        // var_dump($createTableStatement);exit;
 
         // run create table statement
         $this->execute($createTableStatement);

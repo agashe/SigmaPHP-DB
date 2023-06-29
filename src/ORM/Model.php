@@ -61,14 +61,23 @@ class Model implements ModelInterface
     /**
      * @var bool $fetchTrashed
      * this flag will allow trashed models to 
-     * be returned with queries results 
+     * be always returned with queries results 
      */
     protected $fetchTrashed;
 
     /**
+     * @var bool $fetchOnlyTrashed
+     * this flag is temporary to return only soft
+     * deleted models in the query results and 
+     * will be reset after each query
+     */
+    protected $fetchOnlyTrashed;
+
+    /**
      * @var bool $fetchTrashedWithQuery
-     * this flag is temporary and will be reset
-     * after each query
+     * this flag is temporary to return include soft
+     * deleted models in one query results and will
+     * be reset after each query
      */
     protected $fetchTrashedWithQuery;
     
@@ -129,6 +138,12 @@ class Model implements ModelInterface
         // set fetch trashed models flag
         if (empty($this->fetchTrashed) && $this->fetchTrashed !== true) {
             $this->fetchTrashed = false;
+        }
+
+        // set fetch only trashed models with query flag
+        if (empty($this->fetchOnlyTrashed) && 
+            $this->fetchOnlyTrashed !== true) {
+            $this->fetchOnlyTrashed = false;
         }
 
         // set fetch trashed models with query flag
@@ -277,13 +292,20 @@ class Model implements ModelInterface
     protected function processQueryConditions(&$query)
     {
         // check soft delete condition
-        if ($this->isUsingSoftDelete() && 
-            $this->fetchTrashed == false &&
-            $this->fetchTrashedWithQuery == false
-        ) {
-            $this->setCondition(
-                $this->softDeleteFieldName, 'IS', 'NULL'
-            );
+        if ($this->isUsingSoftDelete()) {
+            if ($this->fetchTrashed == false &&
+                $this->fetchTrashedWithQuery == false &&
+                $this->fetchOnlyTrashed == false
+            ) {
+                    $this->setCondition(
+                    $this->softDeleteFieldName, 'IS', 'NULL'
+                );
+            }
+            else if ($this->fetchOnlyTrashed == true) {
+                $this->setCondition(
+                    $this->softDeleteFieldName, 'IS NOT', 'NULL'
+                );
+            }
         }
 
         // apply the conditions
@@ -324,15 +346,14 @@ class Model implements ModelInterface
                             $condition['relation']
                         ];
 
-                        $query
-                            ->join(
-                                $relation['table'],
-                                $relation['table'] . '.' . 
-                                    $relation['foreign_key'],
-                                '=',
-                                $this->getTableName() . '.' . 
-                                    $relation['local_key'],
-                            );
+                        $query->join(
+                            $relation['table'],
+                            $relation['table'] . '.' . 
+                                $relation['foreign_key'],
+                            '=',
+                            $this->getTableName() . '.' . 
+                                $relation['local_key'],
+                        );
 
                         if (
                             !empty($condition['field']) &&
@@ -362,6 +383,7 @@ class Model implements ModelInterface
 
         // disable query return trash flag
         $this->fetchTrashedWithQuery = false;
+        $this->fetchOnlyTrashed = false;
     }
 
     /**
@@ -636,11 +658,12 @@ class Model implements ModelInterface
     /**
      * Delete model.
      *
+     * @param bool $forceHardDelete
      * @return void
      */
-    final public function delete()
+    final public function delete($forceHardDelete = false)
     {
-        if ($this->isUsingSoftDelete()) {
+        if ($this->isUsingSoftDelete() && !$forceHardDelete) {
             $this->trash();
         } else {
             $this->remove(

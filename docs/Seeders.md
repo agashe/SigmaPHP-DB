@@ -16,7 +16,7 @@ To change the default path for your seeder files , open the config file "databas
 Then update the seeders path , to your path of choice :
 
 ```
-'path_to_seeders'  => '/path/to/my/seeders',
+'path_to_seeders' => '/path/to/my/seeders',
 ```
 
 After opening "ProductsSeeder.php" you will notice the default seeder template , which includes the `run()` method , all your statements will goes inside it.

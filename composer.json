@@ -23,10 +23,12 @@
         "phpunit/phpunit": "^9.5"
     },
     "scripts": {
-        "init": "cp src/Console/templates/database.php.dist database.php",
-        "exec": "./vendor/bin/phpunit tests/",
-        "clean": "rm database.php",
-        "test": "composer run init ; composer run exec ; composer run clean"
+        "test": [
+            "Composer\\Config::disableProcessTimeout",
+            "cp src/Console/templates/database.php.dist database.php",
+            "./vendor/bin/phpunit tests/",
+            "rm database.php"
+        ]
     },
     "bin": "bin/sigma-db"
 }

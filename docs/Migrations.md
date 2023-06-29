@@ -15,7 +15,7 @@ To change the default path for your migrations files , open the config file "dat
 Then update the migrations path , to your path of choice :
 
 ```
-'path_to_migrations'  => '/path/to/my/schemas',
+'path_to_migrations' => '/path/to/my/schemas',
 ```
 
 Now open "ProductsTableMigration.php" , you will see the default template for the migrations files :

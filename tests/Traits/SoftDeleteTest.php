@@ -108,7 +108,7 @@ class SoftDeleteTest extends DbTestCase
 
         $this->assertEquals(2, $this->model->count());
     }
-
+    
     /**
      * Test soft deleted models cen be returned in the queries.
      *
@@ -132,6 +132,28 @@ class SoftDeleteTest extends DbTestCase
     }
 
     /**
+     * Test only soft deleted models can be returned in the queries.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testOnlySoftDeletedModelsCanBeReturnedInTheQueries()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO test_soft_delete
+                (name, email, age, deleted_at)
+            VALUES
+                ('test1', 'test1@testing.com', 15, NOW()), 
+                ('test2', 'test2@testing.com', 25, NULL), 
+                ('test3', 'test3@testing.com', 35, NOW());
+        ");
+
+        $addTestData->execute();
+
+        $this->assertEquals(2, $this->model->onlyTrashed()->count());
+    }
+
+    /**
      * Test check if model is soft deleted.
      *
      * @runInSeparateProcess
@@ -152,7 +174,7 @@ class SoftDeleteTest extends DbTestCase
 
         $trashedModelsCount = 0;
         $testModels = $this->model->withTrashed()->all();
-        // var_dump($testModels);
+
         foreach ($testModels as $testModel) {
             if ($testModel->isTrashed()) {
                 $trashedModelsCount += 1;
@@ -194,5 +216,32 @@ class SoftDeleteTest extends DbTestCase
         $query->execute();
         $checkNoDeletedRows = $query->fetch();
         $this->assertEmpty($checkNoDeletedRows);
+    }
+
+    /**
+     * Test soft deleted models cen be deleted permanently.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testSoftDeletedModelsCenBeDeletedPermanently()
+    {
+        $addTestData = $this->connectToDatabase()->prepare("
+            INSERT INTO test_soft_delete
+                (name, email, age, deleted_at)
+            VALUES
+                ('test1', 'test1@testing.com', 15, NULL), 
+                ('test2', 'test2@testing.com', 25, NOW()), 
+                ('test3', 'test3@testing.com', 35, NULL);
+        ");
+
+        $addTestData->execute();
+
+        $testModel = $this->model->withTrashed()->find(2);
+        $testModel->delete(true);
+
+        $this->assertEquals(2, $this->model->count());
+        $this->assertEquals(2, $this->model->withTrashed()->count());
+        $this->assertEquals(0, $this->model->onlyTrashed()->count());
     }
 }

@@ -31,6 +31,17 @@ trait SoftDelete
         $this->fetchTrashedWithQuery = true;
         return $this;
     }
+
+    /**
+     * Return only soft deleted models in the query results.
+     *
+     * @return object
+     */
+    public function onlyTrashed()
+    {
+        $this->fetchOnlyTrashed = true;
+        return $this;
+    }
     
     /**
      * Restore soft deleted model.
