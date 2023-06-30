@@ -531,7 +531,6 @@ $this->checkForeignKey(
     'user_foreign_key'
 );
 ```
-
 <br>
 
 3- Drop foreign key: <br>
@@ -542,3 +541,105 @@ $this->dropForeignKey(
     'user_foreign_key'
 );
 ```
+<br>
+
+
+## Default migration templates 
+
+The SigmaPHP CLI tool provides default templates for both create new table and add new column operations , since those are the most common operation , we usually use with migrations.
+
+To use this feature , all what we have to do , is to name our migration file using the template naming pattern :
+
+```
+CreateXXXXXXXXTable , where your XXXXXXXX is your table name
+
+AddColumnXXXXXXXXToYYYYYYYYTable , where XXXXXXXX is the column name and YYYYYYYY is your table name
+```
+<br>
+
+So to generate `create table` template , we run the following command :
+
+```
+php ./vendor/bin/sigma-db create:migration CreatePostsTable
+```
+<br>
+
+The migration file `CreatePostsTableMigration.php` will be created with the following content :
+
+```
+<?php
+
+use SigmaPHP\DB\Migrations\Migration;
+
+class CreatePostsTableMigration extends Migration
+{
+    /**
+     * @return void
+     */
+    public function up()
+    {
+        $this->createTable(
+            'posts',
+            [
+                ['name' => 'id', 'type' => 'bigint', 'primary' => true],
+                /**
+                 * add your columns !
+                 */
+                ['name' => 'timestamps']
+            ]
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function down()
+    {
+        $this->dropTable('posts');
+    }
+}
+```
+<br>
+
+and for `add new column` template :
+
+```
+php ./vendor/bin/sigma-db create:migration AddColumnSizeToPostImagesTable
+```
+<br>
+
+Will create `AddColumnSizeToPostImagesTableMigration.php`
+
+```
+<?php
+
+use SigmaPHP\DB\Migrations\Migration;
+
+class AddColumnSizeToPostImagesTableMigration extends Migration
+{
+    /**
+     * @return void
+     */
+    public function up()
+    {
+        $this->addColumn(
+            'post_images',
+            'size',
+            [
+                'type' => 'SET_COLUMN_TYPE',
+                // other options
+            ]
+        );
+    }
+
+    /**
+     * @return void
+     */
+    public function down()
+    {
+        $this->dropColumn('post_images', 'size');
+    }
+}
+```
+<br>
+

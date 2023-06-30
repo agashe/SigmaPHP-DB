@@ -26,9 +26,7 @@ php ./vendor/bin/sigma-db create:model Product
 ```
 <br>
 
-Please note : this command will also generate a new migration file to create that table for that model , and it will set the table name automatically.
-
-The model and the migration file both will be created in the default path for the models and the path for  migrations , to change these paths , open the config file "database.php" , and update the paths :
+This command will also generate a new migration file to create the table related to that model , and it will set the table name automatically. The model and the migration file both will be created in the default path for the models and the path for  migrations , to change these paths , open the config file "database.php" , and update the paths :
 
 ```
 'path_to_migrations' => '/path/to/my/migrations',
@@ -69,7 +67,7 @@ By default the ORM will generate the table name automatically and then fetch its
 
 So for a model with name `Product` the generated table name will be `products`.
 
-Also the default primary key is `id` , to change any of these default parameters , all what you need is to override the corresponding variable , as following :
+Also the default primary key is `id` , to change any of these default parameters , all what you need is to override the corresponding properties , as following :
 
 ```
 <?php
@@ -183,7 +181,7 @@ You can also use `where` conditions in your model to build complex queries :
 <?php
 
 // basic where
-$user = $userModel->where('email', '=', 'test@testing.com')->first();
+$user = $userModel->where('email', 'like', '%@testing.com')->first();
 
 // and where
 $usersCount = $userModel
@@ -194,7 +192,7 @@ $usersCount = $userModel
 // or where
 $users = $userModel
     ->where('name', 'like', '%test%')
-    ->orWhere('role', '=', 'admin')
+    ->orWhere('role', 'in', '("super admin", "admin")')
     ->all();
 
 // search models by relation
@@ -242,7 +240,7 @@ $user->delete();
 
 The ORM supports soft delete for models , to apply the soft delete on your model , first you need to make sure , that a `deleted_at` field was added to the table.
 
-(You can check the Migration section for more info about the soft delete field)
+(You can check the [Migration](https://github.com/agashe/SigmaPHP-DB/blob/master/docs/Migrations.md) documentation for more info about the soft delete field)
 
 All remaining now , is to use the SoftDelete trait into your model :
 
@@ -285,16 +283,19 @@ The SoftDelete trait also add multiple useful methods to work with the soft dele
 $allProducts = $productModel->withTrashed()->all();
 
 // to check if model is soft deleted 
-$isDeleted = $productModel->isTrashed();
+$isDeleted = $product->isTrashed();
 
 // to restore a soft deleted model 
-$product = $productModel->isTrashed();
+$product->restore();
 
 // to fetch only soft deleted models
 $onlyTrashedProducts = $productModel->onlyTrashed()->all();
 
 // to delete a soft deleted model permanently you will set the
-// `$forceHardDelete` option to true in the delete method
+// `$forceHardDelete` parameter to true in the delete method
+// by default it's false , and has no effect when the model
+// is not using SoftDelete trait
+
 $product->delete(true);
 
 ```
