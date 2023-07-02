@@ -60,6 +60,12 @@ In the table below , you can find all available commands :
             </td>
         </tr>
         <tr>
+            <td>create:model {model name}</td>
+            <td>
+                Create new model class. In addition this command will generate a migration file for creating the corresponding table.
+            </td>
+        </tr>
+        <tr>
             <td>create:seeder {seeder name}</td>
             <td>
                 Create new seeder file. Please note that , the same rules for naming the migration file is also applied to the seeder.
@@ -87,7 +93,7 @@ In the table below , you can find all available commands :
         <tr>
             <td>migrate {migration name}</td>
             <td>
-                Run all migrations files. You can pass migration file name , to run specific migration.
+                Run all migrations files. Optionally you can pass migration file name , to run specific migration.
             </td>
         </tr>
         <tr>
