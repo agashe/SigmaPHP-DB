@@ -256,7 +256,7 @@ Also SigmaPHP-DB in addition to the default data types provides some special dat
         <tr>
             <td>UUID</td>
             <td>
-                Instead of making your id field just an integer, you can use UUID field , to use auto generated unique identifier. By default MySQL didn't allow using functions in INSERT expression until version 5.8 , so make sure you're using MySQL version 5.8 or above to use this data type. By default any field with type UUID , will be set as primary key for the table
+                Instead of making your id field just an integer, you can use UUID field , to use auto generated unique identifier. By default MySQL didn't allow using functions as DEFAULT value until version 8.0.13 , so make sure you're using MySQL version 8.0.13 or above to use this data type. By default any field with type UUID , will be set as primary key for the table
             </td>
         </tr>
         <tr>
