@@ -235,7 +235,7 @@ In addition to fields options. Each table has 4 options:
         <tr>
             <td>comment</td>
             <td>
-                Add a comment to the table.
+                Add a comment to the table
             </td>
         </tr>
         <tr>
@@ -246,6 +246,46 @@ In addition to fields options. Each table has 4 options:
         </tr>
     </tbody>
 </table>
+
+<br>
+
+Also SigmaPHP-DB in addition to the default data types provides some special data types :
+
+<table border>
+    <tbody>
+        <tr>
+            <td>UUID</td>
+            <td>
+                Instead of making your id field just an integer, you can use UUID field , to use auto generated unique identifier. By default MySQL didn't allow using functions in INSERT expression until version 5.8 , so make sure you're using MySQL version 5.8 or above to use this data type. By default any field with type UUID , will be set as primary key for the table
+            </td>
+        </tr>
+        <tr>
+            <td>soft_delete</td>
+            <td>
+                This type will add `deleted_at` to the table , that can be used along side the SoftDelete trait in the models to enable the soft delete functionality in the ORM
+            </td>
+        </tr>
+        <tr>
+            <td>timestamps</td>
+            <td>
+                Add `created_at` and `updated_at` fields to the table
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+And here an example :
+
+```
+$this->createTable(
+    'special_types',
+    [
+        ['name' => 'id', 'type' => 'uuid'],
+        ['name' => 'soft_delete'],
+        ['name' => 'timestamps']
+    ]
+);
+```
 
 <br>
 
