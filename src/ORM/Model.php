@@ -107,7 +107,8 @@ class Model implements ModelInterface
         $this->dbConnection = $dbConnection;
         $this->dbName = $dbName;
         $this->isNew = $isNew;
-
+        $this->values = $values;
+        
         // set table name if it wasn't provided
         if (empty($this->table)) {
             $this->table = $this->createTableName(get_called_class());
