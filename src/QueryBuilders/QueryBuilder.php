@@ -26,6 +26,8 @@ class QueryBuilder implements QueryBuilderInterface
 
     /**
      * QueryBuilder Constructor
+     * 
+     * @param \PDO $dbConnection
      */
     public function __construct($dbConnection)
     {

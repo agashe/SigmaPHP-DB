@@ -25,6 +25,8 @@ class Seeder implements SeederInterface
     
     /**
      * Seeder Constructor
+     * 
+     * @param \PDO $dbConnection
      */
     public function __construct($dbConnection)
     {

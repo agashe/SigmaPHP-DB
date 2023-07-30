@@ -97,6 +97,11 @@ class Model implements ModelInterface
     
     /**
      * Model Constructor
+     * 
+     * @param \PDO $dbConnection
+     * @param string $dbName
+     * @param array $values
+     * @param bool $isNew
      */
     public function __construct(
         $dbConnection = null,
@@ -107,8 +112,7 @@ class Model implements ModelInterface
         $this->dbConnection = $dbConnection;
         $this->dbName = $dbName;
         $this->isNew = $isNew;
-        $this->values = $values;
-        
+
         // set table name if it wasn't provided
         if (empty($this->table)) {
             $this->table = $this->createTableName(get_called_class());
@@ -172,7 +176,7 @@ class Model implements ModelInterface
                 }
 
                 $this->values[$field] = (isset($values[$field])) ?
-                $values[$field] : null;
+                    $values[$field] : null;
             }
         }
     }

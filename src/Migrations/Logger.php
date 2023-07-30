@@ -24,6 +24,9 @@ class Logger implements LoggerInterface
     
     /**
      * Logger Constructor
+     * 
+     * @param \PDO $dbConnection
+     * @param string $logsTable
      */
     public function __construct($dbConnection, $logsTable)
     {

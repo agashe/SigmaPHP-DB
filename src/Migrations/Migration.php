@@ -41,6 +41,9 @@ class Migration implements MigrationInterface
 
     /**
      * Migration Constructor
+     * 
+     * @param \PDO $dbConnection
+     * @param string $dbName
      */
     public function __construct($dbConnection, $dbName)
     {
