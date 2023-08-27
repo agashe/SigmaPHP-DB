@@ -70,8 +70,18 @@ class ConsoleManager implements ConsoleManagerInterface
         $argument = $input[2] ?? null;
         $option = $input[3] ?? null;
 
+        // check that one of the parameters is the config
+        $customConfigPath = '';
+        
+        if ((strpos($argument, '--config=') !== false)) {
+            $customConfigPath = $argument;
+            $argument = null;
+        } else {
+            $customConfigPath = $option;
+        }
+
         if (!in_array($command, ['version', 'help', 'create:config'])) {
-            $this->loadConfigs($option);
+            $this->loadConfigs($customConfigPath);
         }
         
         switch ($command) {
