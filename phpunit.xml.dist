@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<phpunit>
+<phpunit bootstrap="vendor/autoload.php" colors="true">
+    <testsuites>
+        <testsuite name="SigmaPHP-DB Unit Tests">
+            <directory>tests/</directory>
+        </testsuite>
+    </testsuites>
+    
     <php>
         <var name="DB_HOST" value="host" />
         <var name="DB_USER" value="user" />

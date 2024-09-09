@@ -1,6 +1,6 @@
 <?php 
 
-namespace SigmaPHP\DB\TestCases;
+namespace SigmaPHP\DB\Tests\TestCases;
 
 use PHPUnit\Framework\TestCase;
 

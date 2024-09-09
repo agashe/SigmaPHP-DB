@@ -1,10 +1,9 @@
 <?php
 
-use SigmaPHP\DB\TestCases\DbTestCase;
+use SigmaPHP\DB\Tests\TestCases\DbTestCase;
 use SigmaPHP\DB\Exceptions\NotFoundException;
-
-require('ExampleModel.php');
-require('RelationExampleModel.php');
+use SigmaPHP\DB\Tests\ORM\ExampleModel;
+use SigmaPHP\DB\Tests\ORM\RelationExampleModel;
 
 /**
  * Model Test

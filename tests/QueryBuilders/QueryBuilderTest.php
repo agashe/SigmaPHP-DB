@@ -1,6 +1,6 @@
 <?php 
 
-use SigmaPHP\DB\TestCases\DbTestCase;
+use SigmaPHP\DB\Tests\TestCases\DbTestCase;
 use SigmaPHP\DB\QueryBuilders\QueryBuilder;
 use SigmaPHP\DB\Exceptions\InvalidArgumentException;
 

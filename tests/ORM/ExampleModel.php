@@ -1,5 +1,7 @@
 <?php
 
+namespace SigmaPHP\DB\Tests\ORM;
+
 use SigmaPHP\DB\ORM\Model;
 
 /**

@@ -6,8 +6,12 @@
 	"license": "MIT",
     "autoload": {
         "psr-4": {
-            "SigmaPHP\\DB\\": "src/",
-            "SigmaPHP\\DB\\TestCases\\": "tests/TestCases"
+            "SigmaPHP\\DB\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SigmaPHP\\DB\\Tests\\": "tests/"
         }
     },
     "authors": [
