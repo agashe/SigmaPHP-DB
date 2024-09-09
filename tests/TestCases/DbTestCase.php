@@ -32,6 +32,9 @@ class DbTestCase extends TestCase
 
         // create test table
         $this->createTestTable();
+
+        // create config file
+        $this->createConfigFile();
     }
     
     /**
@@ -42,6 +45,7 @@ class DbTestCase extends TestCase
     public function tearDown(): void
     {
         $this->dropTestTable();
+        $this->deleteConfigFile();
     }
     
     /**
@@ -140,5 +144,48 @@ class DbTestCase extends TestCase
         $fields = explode(',', $tableFields->fetchAll()[0]['FIELDS']);
 
         return array_values($fields);
+    }
+    
+    /**
+     * Create dummy config file for testing.
+     *
+     * @return void
+     */
+    protected function createConfigFile()
+    {
+        if (!file_exists('database.php')) {
+            file_put_contents(
+                'database.php', 
+                <<<CONFIG
+                <?php
+
+                return [
+                    'path_to_migrations'  => '/database/migrations',
+                    'path_to_seeders'     => '/database/seeders',
+                    'path_to_models'      => '/src/Models',
+                    'logs_table_name'     => 'db_logs',
+                    'database_connection' => [
+                        'host' => '{$GLOBALS['DB_HOST']}',
+                        'name' => '{$GLOBALS['DB_NAME']}',
+                        'user' => '{$GLOBALS['DB_USER']}',
+                        'pass' => '{$GLOBALS['DB_PASS']}',
+                        'port' => '{$GLOBALS['DB_PORT']}',
+                    ]
+                ];
+                CONFIG
+            );
+        }
+    }
+    
+    /**
+     * Delete testing config file.
+     *
+     * @return void
+     */
+    protected function deleteConfigFile()
+    {
+        if (file_exists('database.php')) {
+            unlink('database.php');
+        }
     }
 }

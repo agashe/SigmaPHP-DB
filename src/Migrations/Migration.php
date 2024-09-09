@@ -487,7 +487,7 @@ class Migration implements MigrationInterface
         $name,
         $columns,
         $type = 'normal',
-        $order,
+        $order = [],
     ) {
         $type = ($type == 'normal') ? '' : strtoupper($type);
 

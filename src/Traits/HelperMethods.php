@@ -16,7 +16,7 @@ trait HelperMethods
     public function addQuotes($value)
     {
         // exclude the null / numeric / SQL functions and constants
-        return (
+        return !empty($value) && (
             (strpos($value, '(') !== false) || 
             (strtoupper($value) == 'CURRENT_TIMESTAMP') || 
             strtolower($value) == 'null' ||

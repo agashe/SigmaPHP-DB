@@ -73,7 +73,7 @@ class ConsoleManager implements ConsoleManagerInterface
         // check that one of the parameters is the config
         $customConfigPath = '';
         
-        if ((strpos($argument, '--config=') !== false)) {
+        if (!empty($argument) && (strpos($argument, '--config=') !== false)) {
             $customConfigPath = $argument;
             $argument = null;
         } else {

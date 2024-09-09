@@ -1,13 +1,12 @@
 <?php 
 
-use PHPUnit\Framework\TestCase;
-
+use SigmaPHP\DB\TestCases\DbTestCase;
 use SigmaPHP\DB\Console\ConsoleManager;
 
 /**
  * Console Manager Test
  */
-class ConsoleManagerTest extends TestCase
+class ConsoleManagerTest extends DbTestCase
 {
     /**
      * @var ConsoleManager $consoleManager
@@ -21,6 +20,8 @@ class ConsoleManagerTest extends TestCase
      */
     public function setUp(): void
     {
+        parent::setUp();
+        
         $this->consoleManager = new ConsoleManager();
     }
 
