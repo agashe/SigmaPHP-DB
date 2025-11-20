@@ -47,7 +47,7 @@ interface ModelInterface
      * Find model by primary key.
      *
      * @param mixed $primaryValue
-     * @return Model
+     * @return Model|null
      */
     public function find($primaryValue);
 
@@ -55,8 +55,8 @@ interface ModelInterface
      * Find model by field's value.
      *
      * @param string $field
-     * @param int $value
-     * @return array
+     * @param string $value
+     * @return Model|null
      */
     public function findBy($field, $value);
 

@@ -462,8 +462,12 @@ class Model implements ModelInterface
 
         $this->processQueryConditions($query);
 
-        foreach ($query->getAll() as $modelData) {
-            $models[] = $this->createModelInstance($modelData);
+        $result = $query->getAll();
+
+        if (!empty($result)) {
+            foreach ($result as $modelData) {
+                $models[] = $this->createModelInstance($modelData);
+            }
         }
 
         return $models;
@@ -508,40 +512,50 @@ class Model implements ModelInterface
 
         $this->processQueryConditions($query);
 
-        return $query->get()['rows_count'];
+        return $query->get()['rows_count'] ?: 0;
     }
 
     /**
      * Find model by primary key.
      *
      * @param mixed $primaryValue
-     * @return Model
+     * @return Model|null
      */
     final public function find($primaryValue)
     {
-        $query = $this->query();
+        $model = null;
+        $query = $this->query()
+            ->select([$this->getTableName() . '.*']);
         
         $this->setCondition(
             $this->primary, '=', $primaryValue
         );
         
         $this->processQueryConditions($query);
+        
+        $result = $query->get();
 
-        return $this->createModelInstance(
-            $query->get()
-        );
+        if (!empty($result)) {
+            $model = $this->createModelInstance(
+                $result
+            );
+        }
+
+        return $model;
     }
 
     /**
      * Find model by field's value.
      *
      * @param string $field
-     * @param int $value
-     * @return array
+     * @param string $value
+     * @return Model|null
      */
     final public function findBy($field, $value)
     {
-        $query = $this->query();
+        $model = null;
+        $query = $this->query()
+            ->select([$this->getTableName() . '.*']);
         
         $this->setCondition(
             $field, '=', $value
@@ -549,9 +563,15 @@ class Model implements ModelInterface
         
         $this->processQueryConditions($query);
 
-        return $this->createModelInstance(
-            $query->get()
-        );
+        $result = $query->get();
+
+        if (!empty($result)) {
+            $model = $this->createModelInstance(
+                $result
+            );
+        }
+
+        return $model;
     }
 
     /**
