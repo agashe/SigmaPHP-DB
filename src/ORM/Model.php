@@ -638,7 +638,7 @@ class Model implements ModelInterface
         $values = [];
 
         foreach ($this->values as $field => $value) {
-            if (($field == $this->primary) || empty($value)) {
+            if (($field == $this->primary) || is_null($value)) {
                 continue;
             }
 
