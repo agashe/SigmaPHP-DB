@@ -258,6 +258,14 @@ class ConsoleManager implements ConsoleManagerInterface
         }
 
         $this->configs = require $configFilePath;
+
+        // replace ./ with empty string if exists in the path
+        $this->configs['path_to_migrations'] = 
+            str_replace('./', '', $this->configs['path_to_migrations']);
+        $this->configs['path_to_seeders'] = 
+            str_replace('./', '', $this->configs['path_to_seeders']);
+        $this->configs['path_to_models'] = 
+            str_replace('./', '', $this->configs['path_to_models']);
     }
 
     /**
