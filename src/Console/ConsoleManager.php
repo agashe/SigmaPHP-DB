@@ -569,6 +569,9 @@ class ConsoleManager implements ConsoleManagerInterface
     {
         $migrations = [];
 
+        // remove the file extension ".php" if exists
+        $migrationName = str_replace('.php', '', $migrationName);
+
         if (!empty($migrationName)) {
             $migrations[] = $migrationName;
         } else {
@@ -663,6 +666,9 @@ class ConsoleManager implements ConsoleManagerInterface
     private function seed($seederName = '')
     {
         $seeders = [];
+
+        // remove the file extension ".php" if exists
+        $seederName = str_replace('.php', '', $seederName);
 
         if (!empty($seederName)) {
             $seeders[] = $seederName;
