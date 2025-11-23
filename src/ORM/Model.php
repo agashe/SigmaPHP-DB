@@ -689,6 +689,10 @@ class Model implements ModelInterface
     final public function delete($forceHardDelete = false)
     {
         if ($this->isUsingSoftDelete() && !$forceHardDelete) {
+            // we disable the "Undefined method ..." warning , since this method
+            // will be defined in the SoftDelete Trait
+            
+            /** @disregard P1013 */
             $this->trash();
         } else {
             $this->remove(
