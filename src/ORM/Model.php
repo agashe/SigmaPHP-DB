@@ -94,6 +94,12 @@ class Model implements ModelInterface
      * like table name, foreign key and local key
      */
     protected $relations;
+
+    /**
+     * @var bool $uuid
+     * to control using UUID as primary keys in models
+     */
+    protected $uuid;
     
     /**
      * Model Constructor
@@ -247,6 +253,16 @@ class Model implements ModelInterface
             $this->dbName,
             $modelData
         );
+    }
+
+    /**
+     * Generate a new UUID to be used as PK for model.
+     *
+     * @return string
+     */
+    protected function generateUUID()
+    {
+        return $this->fetchColumn("SELECT UUID()")[0];
     }
     
     /**
@@ -665,10 +681,21 @@ class Model implements ModelInterface
             $values[$field] = $value;
         }
 
+        // in case of PK of type UUID , we generate a new UUID , and save it
+        if ($this->uuid) {
+            $this->values[$this->primary] = $this->generateUUID();
+        }
+
         if ($this->isNew) {
             $this->insert($this->table, [$values]);
-            $this->values[$this->primary] = 
-                $this->getLatestInsertedRowPrimaryKeyValue();
+
+            // here we skip this part for UUID PKs , since LAST_INSERT_ID does
+            // not work with non-numerical PKs
+            if (!$this->uuid) {
+                $this->values[$this->primary] = 
+                    $this->getLatestInsertedRowPrimaryKeyValue();
+            }
+
             $this->isNew = false;
         } else {
             $this->update(

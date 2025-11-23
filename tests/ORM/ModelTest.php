@@ -4,6 +4,7 @@ use SigmaPHP\DB\Tests\TestCases\DbTestCase;
 use SigmaPHP\DB\Exceptions\NotFoundException;
 use SigmaPHP\DB\Tests\ORM\ExampleModel;
 use SigmaPHP\DB\Tests\ORM\RelationExampleModel;
+use SigmaPHP\DB\Tests\ORM\UuidExampleModel;
 
 /**
  * Model Test
@@ -624,5 +625,51 @@ class ModelTest extends DbTestCase
         );
 
         $this->dropTestTable('test_relations');
+    }
+
+    /**
+     * Test UUID.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testUUID()
+    {
+        $testTable = $this->connectToDatabase()->prepare("
+            CREATE TABLE IF NOT EXISTS uuid_example_models (
+                id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+                name VARCHAR(50) NOT NULL
+            );
+        ");
+
+        $testTable->execute();
+
+        $testModel = new UUIDExampleModel(
+            $this->connectToDatabase(),
+            $this->dbConfigs['name']
+        );
+
+        $testModel->name = 'ahmed';
+        $testModel->save();
+
+        $dataWasSaved = $this->connectToDatabase()->prepare('
+            SELECT * FROM uuid_example_models;
+        ');
+
+        $dataWasSaved->execute();
+
+        $savedId = $dataWasSaved->fetch()['id'];
+
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+            $testModel->id
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+            $savedId
+        );
+
+        $this->dropTestTable('uuid_example_models');
     }
 }
