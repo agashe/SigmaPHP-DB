@@ -58,7 +58,6 @@ class ModelTest extends DbTestCase
     {
         $objectReflection = new \ReflectionClass($object);
         $propertyReflection = $objectReflection->getProperty($property);
-        $propertyReflection->setAccessible(true);
         
         return $propertyReflection->getValue($object);
     }
@@ -460,7 +459,7 @@ class ModelTest extends DbTestCase
             $this->dbConfigs['name']
         );
 
-        $getModelByRelation = $this->model->whereHas(
+        $getModelByRelation = $testModel->whereHas(
             'relationDoesNotExists'
         )->first();
     }
