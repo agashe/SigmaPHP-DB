@@ -69,6 +69,8 @@ So for a model with name `Product` the generated table name will be `products`.
 
 Also the default primary key is `id` , to change any of these default parameters , all what you need is to override the corresponding properties , as following :
 
+Finally , in order to support using UUIDv4 as primary keys in the Model , we should set the `$uuid` variable to true in the Model , and of course make sure that the primary key field has a proper type , in the migration file either by defining custom `CHAR` or `BINARY` field , or using the custom data type: `uuid`  
+
 ```
 <?php
 
@@ -81,6 +83,8 @@ class User extends Model
     protected $table = 'users_table';
 
     protected $primary = 'user_id';
+
+    protected $uuid = true;
 
     protected $fields = ['user_id', 'name', 'age'];
 }
