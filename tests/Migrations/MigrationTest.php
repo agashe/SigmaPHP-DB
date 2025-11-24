@@ -119,6 +119,7 @@ class MigrationTest extends DbTestCase
     {
         $this->migration->createTable(
             'my_table', [
+                ['name' => 'id', 'type' => 'uuid'],
                 ['name' => 'soft_delete'],
                 ['name' => 'timestamps']
             ],
@@ -134,13 +135,13 @@ class MigrationTest extends DbTestCase
             AND
                 TABLE_NAME = 'my_table'
             AND
-                COLUMN_NAME IN ('deleted_at', 'created_at', 'updated_at')
+                COLUMN_NAME IN ('id', 'deleted_at', 'created_at', 'updated_at')
         ");
         
         $fieldsCount->execute();
 
         $this->assertEquals(
-            3,
+            4,
             count($fieldsCount->fetchAll())
         );
 
