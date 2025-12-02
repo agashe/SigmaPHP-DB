@@ -1,0 +1,72 @@
+name: Run Unit Testing
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ["8.0", "8.1", "8.2", "8.3", "8.4"]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, pdo, pdo_mysql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Write phpunit.xml
+        run: |
+          cat > phpunit.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8" ?>
+          <phpunit bootstrap="vendor/autoload.php" colors="true">
+              <testsuites>
+                  <testsuite name="SigmaPHP-DB Unit Tests">
+                      <directory>tests/</directory>
+                  </testsuite>
+              </testsuites>
+
+              <php>
+                  <var name="DB_HOST" value="localhost" />
+                  <var name="DB_USER" value="root" />
+                  <var name="DB_PASS" value="root" />
+                  <var name="DB_NAME" value="test" />
+                  <var name="DB_PORT" value="3306" />
+              </php>
+          </phpunit>
+          EOF
+
+      - name: Run Test Cases
+        run: |
+          ./vendor/bin/phpunit --testdox
+          echo "All test cases have passed successfully!"
