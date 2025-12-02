@@ -24,7 +24,7 @@ class ModelTest extends DbTestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         // create tests table
         $this->createTestTable('example_models');
 
@@ -47,7 +47,7 @@ class ModelTest extends DbTestCase
         // drop tests table
         $this->dropTestTable('example_models');
     }
-    
+
     /**
      * Get value of private property.
      *
@@ -59,10 +59,14 @@ class ModelTest extends DbTestCase
     {
         $objectReflection = new \ReflectionClass($object);
         $propertyReflection = $objectReflection->getProperty($property);
-        
+
+        if (PHP_VERSION_ID < 80100) {
+            $propertyReflection->setAccessible(true);
+        }
+
         return $propertyReflection->getValue($object);
     }
-    
+
     /**
      * Test model create table name automatically.
      *
@@ -72,7 +76,7 @@ class ModelTest extends DbTestCase
     public function testModelCreateTableNameAutomatically()
     {
         $this->assertEquals(
-            'example_models', 
+            'example_models',
             $this->getPrivatePropertyValue($this->model, 'table')
         );
     }
@@ -86,11 +90,11 @@ class ModelTest extends DbTestCase
     public function testModelFetchAllFieldsInTableAutomatically()
     {
         $this->assertEquals(
-            ['id', 'name', 'email', 'age'], 
+            ['id', 'name', 'email', 'age'],
             $this->getPrivatePropertyValue($this->model, 'fields')
         );
     }
-    
+
     /**
      * Test model access fields dynamically.
      *
@@ -102,11 +106,11 @@ class ModelTest extends DbTestCase
         $this->model->name = 'hello';
 
         $this->assertEquals(
-            'hello', 
+            'hello',
             $this->model->name
         );
     }
-    
+
     /**
      * Test throws exception if table does not exists.
      *
@@ -116,9 +120,9 @@ class ModelTest extends DbTestCase
     public function testThrowsExceptionIfTableDoesNotExists()
     {
         $this->expectException(NotFoundException::class);
-        
+
         $this->dropTestTable('example_models');
-        
+
         $testModel = new ExampleModel(
             $this->connectToDatabase(),
             $this->dbConfigs['name']
@@ -136,7 +140,7 @@ class ModelTest extends DbTestCase
         $this->expectException(NotFoundException::class);
         $this->model->gender = 'male';
     }
-    
+
     /**
      * Test throws exception if you tried to get field that does not exists.
      *
@@ -158,7 +162,7 @@ class ModelTest extends DbTestCase
     public function testGetTableNameMethod()
     {
         $this->assertEquals(
-            'example_models', 
+            'example_models',
             $this->model->getTableName()
         );
     }
@@ -196,9 +200,9 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13), 
-                ('test2', 'test2@test.local', 14), 
-                ('test3', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14),
+                ('test3', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
@@ -206,14 +210,14 @@ class ModelTest extends DbTestCase
         $testModels = $this->model->all();
 
         $this->assertEquals(3, count($testModels));
-        
+
         foreach ($testModels as $testModel) {
             $this->assertInstanceOf(ExampleModel::class, $testModel);
         }
-        
+
         $this->assertEquals(14, $testModels[1]->age);
     }
-    
+
     /**
      * Test first method.
      *
@@ -226,19 +230,19 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13), 
-                ('test2', 'test2@test.local', 14), 
-                ('test3', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14),
+                ('test3', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
 
         $testModel = $this->model->first();
-        
+
         $this->assertInstanceOf(ExampleModel::class, $testModel);
         $this->assertEquals(13, $testModel->age);
     }
-    
+
     /**
      * Test count method.
      *
@@ -251,16 +255,16 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13), 
-                ('test2', 'test2@test.local', 14), 
-                ('test3', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14),
+                ('test3', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
 
         $this->assertEquals(3, $this->model->count());
     }
-    
+
     /**
      * Test find method.
      *
@@ -273,19 +277,19 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13), 
-                ('test2', 'test2@test.local', 14), 
-                ('test3', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14),
+                ('test3', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
 
         $testModel = $this->model->find(3);
 
-        $this->assertInstanceOf(ExampleModel::class, $testModel);      
+        $this->assertInstanceOf(ExampleModel::class, $testModel);
         $this->assertEquals('test3@test.local', $testModel->email);
     }
-    
+
     /**
      * Test find by method.
      *
@@ -298,9 +302,9 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13), 
-                ('test2', 'test2@test.local', 14), 
-                ('test3', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 13),
+                ('test2', 'test2@test.local', 14),
+                ('test3', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
@@ -310,7 +314,7 @@ class ModelTest extends DbTestCase
         $this->assertInstanceOf(ExampleModel::class, $testModel);
         $this->assertEquals('test1', $testModel->name);
     }
-    
+
     /**
      * Test where method.
      *
@@ -323,11 +327,11 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 11), 
-                ('test2', 'test2@test.local', 12), 
-                ('test3', 'test2@test.local', 13), 
-                ('test4', 'test2@test.local', 14), 
-                ('test5', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 11),
+                ('test2', 'test2@test.local', 12),
+                ('test3', 'test2@test.local', 13),
+                ('test4', 'test2@test.local', 14),
+                ('test5', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
@@ -349,11 +353,11 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 11), 
-                ('test2', 'test2@test.local', 12), 
-                ('test3', 'test2@test.local', 13), 
-                ('test4', 'test2@test.local', 14), 
-                ('test5', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 11),
+                ('test2', 'test2@test.local', 12),
+                ('test3', 'test2@test.local', 13),
+                ('test4', 'test2@test.local', 14),
+                ('test5', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
@@ -365,7 +369,7 @@ class ModelTest extends DbTestCase
 
         $this->assertEmpty($testModel);
     }
-    
+
     /**
      * Test or where method.
      *
@@ -378,11 +382,11 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 11), 
-                ('test2', 'test2@test.local', 12), 
-                ('test3', 'test2@test.local', 13), 
-                ('test4', 'test2@test.local', 14), 
-                ('test5', 'test3@test.local', 15); 
+                ('test1', 'test1@test.local', 11),
+                ('test2', 'test2@test.local', 12),
+                ('test3', 'test2@test.local', 13),
+                ('test4', 'test2@test.local', 14),
+                ('test5', 'test3@test.local', 15);
         ");
 
         $addTestData->execute();
@@ -453,7 +457,7 @@ class ModelTest extends DbTestCase
     public function testWhereHasThrowsExceptionIfTheRelationDoesNotExists()
     {
         $this->expectException(NotFoundException::class);
-        
+
         // create instance of model that has relations method
         $testModel = new RelationExampleModel(
             $this->connectToDatabase(),
@@ -482,7 +486,7 @@ class ModelTest extends DbTestCase
         ');
 
         $dataWasSaved->execute();
-        
+
         $this->assertEquals(1, $dataWasSaved->fetch()['id']);
         $this->assertEquals(1, $this->model->id);
         $this->assertEquals(
@@ -503,7 +507,7 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13); 
+                ('test1', 'test1@test.local', 13);
         ");
 
         $addTestData->execute();
@@ -542,7 +546,7 @@ class ModelTest extends DbTestCase
             INSERT INTO example_models
                 (name, email, age)
             VALUES
-                ('test1', 'test1@test.local', 13); 
+                ('test1', 'test1@test.local', 13);
         ");
 
         $addTestData->execute();
@@ -562,7 +566,7 @@ class ModelTest extends DbTestCase
             $this->getPrivatePropertyValue($testModel, 'isNew')
         );
     }
-    
+
     /**
      * Test has relation method.
      *
@@ -602,7 +606,7 @@ class ModelTest extends DbTestCase
 
         $addTestData->execute();
 
-        $testModel1 = $this->model->find(1); 
+        $testModel1 = $this->model->find(1);
         $relatedModels = $testModel1->relationExamples();
 
         $this->assertEquals(1, count($relatedModels));
@@ -611,7 +615,7 @@ class ModelTest extends DbTestCase
             $relatedModels[0]
         );
 
-        $testModel2 = $this->model->find(2); 
+        $testModel2 = $this->model->find(2);
         $relatedModels = $testModel2->relationExamples();
 
         $this->assertEquals(2, count($relatedModels));
