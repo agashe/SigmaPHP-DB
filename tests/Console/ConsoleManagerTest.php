@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use SigmaPHP\DB\Tests\TestCases\DbTestCase;
 use SigmaPHP\DB\Console\ConsoleManager;
@@ -21,7 +21,10 @@ class ConsoleManagerTest extends DbTestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
+        // disable colors
+        $_SERVER['NO_COLOR'] = true;
+
         $this->consoleManager = new ConsoleManager();
     }
 
@@ -40,7 +43,7 @@ class ConsoleManagerTest extends DbTestCase
         $this->consoleManager->execute($input);
         $this->expectOutputString("SigmaPHP-DB version 0.1.0\n");
     }
-    
+
     /**
      * Test sorry message will be printed for unknown commands.
      *
@@ -56,7 +59,7 @@ class ConsoleManagerTest extends DbTestCase
         $this->consoleManager->execute($input);
 
         $expectedMessage = <<< TEXT
-        \033[31mInvalid command.
+        Invalid command.
         Type 'php sigma-db help' command for help.\n
         TEXT;
 
