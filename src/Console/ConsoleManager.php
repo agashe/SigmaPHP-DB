@@ -175,9 +175,12 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function printMessage($text, $color = '')
     {
+        $clearColor = "\033[0m";
+
         // check if the stream (terminal) supports colorization.
         if (!stream_isatty(STDOUT) || isset($_SERVER['NO_COLOR'])) {
             $color = '';
+            $clearColor = '';
         }
 
         switch ($color) {
@@ -192,7 +195,6 @@ class ConsoleManager implements ConsoleManagerInterface
                 break;
         }
 
-        $clearColor = "\033[0m";
 
         echo "{$color}{$text}{$clearColor}" . PHP_EOL;
     }
