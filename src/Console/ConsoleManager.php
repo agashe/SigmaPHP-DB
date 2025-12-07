@@ -28,7 +28,7 @@ class ConsoleManager implements ConsoleManagerInterface
      * @var array $configs
      */
     private $configs;
- 
+
     /**
      * @var string $basePath
      */
@@ -60,7 +60,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Execute console commands.
-     * 
+     *
      * @param string $input
      * @return void
      */
@@ -72,7 +72,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
         // check that one of the parameters is the config
         $customConfigPath = '';
-        
+
         if (!empty($argument) && (strpos($argument, '--config=') !== false)) {
             $customConfigPath = $argument;
             $argument = null;
@@ -83,7 +83,7 @@ class ConsoleManager implements ConsoleManagerInterface
         if (!in_array($command, ['version', 'help', 'create:config'])) {
             $this->loadConfigs($customConfigPath);
         }
-        
+
         switch ($command) {
             case 'version':
                 $this->version();
@@ -92,7 +92,7 @@ class ConsoleManager implements ConsoleManagerInterface
             case 'help':
                 $this->help();
                 break;
-            
+
             case 'create:config':
                 $this->createConfigFile($argument);
                 break;
@@ -134,7 +134,7 @@ class ConsoleManager implements ConsoleManagerInterface
                 $this->migrate();
                 $this->seed();
                 break;
-                
+
             default:
                 $this->commandNotFound();
                 break;
@@ -142,7 +142,7 @@ class ConsoleManager implements ConsoleManagerInterface
     }
 
     /**
-     * Get database connection instance (PDO) 
+     * Get database connection instance (PDO)
      * or create new one if it's not found.
      *
      * @return \PDO
@@ -192,7 +192,9 @@ class ConsoleManager implements ConsoleManagerInterface
                 break;
         }
 
-        echo "{$color}{$text}" . PHP_EOL;
+        $clearColor = "\033[0m";
+
+        echo "{$color}{$text}{$clearColor}" . PHP_EOL;
     }
 
     /**
@@ -211,10 +213,10 @@ class ConsoleManager implements ConsoleManagerInterface
             print($line . PHP_EOL);
         }
     }
-    
+
     /**
      * Default error message.
-     * 
+     *
      * @return void
      */
     private function commandNotFound()
@@ -229,13 +231,13 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Load config.
-     * 
+     *
      * @param string $path
      * @return void
      */
     private function loadConfigs($path = '')
     {
-        $configFilePath = $this->basePath . '/' . 
+        $configFilePath = $this->basePath . '/' .
             self::DEFAULT_CONFIG_FILE_NAME . '.' .
             self::DEFAULT_CONFIG_FILE_EXTENSION;
 
@@ -244,7 +246,7 @@ class ConsoleManager implements ConsoleManagerInterface
                 $configFilePath = str_replace('--config=', '', $path);
             } else {
                 throw new InvalidArgumentException("Unknown option $path");
-            }    
+            }
         }
 
         if (!file_exists($configFilePath)) {
@@ -260,11 +262,11 @@ class ConsoleManager implements ConsoleManagerInterface
         $this->configs = require $configFilePath;
 
         // replace ./ with empty string if exists in the path
-        $this->configs['path_to_migrations'] = 
+        $this->configs['path_to_migrations'] =
             str_replace('./', '', $this->configs['path_to_migrations']);
-        $this->configs['path_to_seeders'] = 
+        $this->configs['path_to_seeders'] =
             str_replace('./', '', $this->configs['path_to_seeders']);
-        $this->configs['path_to_models'] = 
+        $this->configs['path_to_models'] =
             str_replace('./', '', $this->configs['path_to_models']);
     }
 
@@ -289,9 +291,9 @@ class ConsoleManager implements ConsoleManagerInterface
         if ($handle = opendir($path)) {
             while (($file = readdir($handle))) {
                 if (in_array($file, ['.', '..'])) continue;
-                $filesNames[] = str_replace('.php', '', $file);   
+                $filesNames[] = str_replace('.php', '', $file);
             }
-            
+
             closedir($handle);
         }
 
@@ -300,17 +302,17 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Print framework version.
-     * 
+     *
      * @return void
      */
     private function version()
     {
         $this->printMessage("SigmaPHP-DB version 0.1.0");
     }
-    
+
     /**
      * Print help menu.
-     * 
+     *
      * @return void
      */
     private function help()
@@ -320,15 +322,15 @@ class ConsoleManager implements ConsoleManagerInterface
 
             create:config {path}
                 Create new config file, if no path was provided , a
-                default config file (database.php) will be created 
-                in the root of the project's folder. 
+                default config file (database.php) will be created
+                in the root of the project's folder.
             create:migration {migration name}
                 Create migration file.
             create:model {model name}
                 Create model file. This command will generate
                 in addition a new migration file automatically.
             create:seeder {seeder name}
-                Create seeder file. 
+                Create seeder file.
             drop
                 Drop all tables in the database.
             fresh
@@ -356,10 +358,10 @@ class ConsoleManager implements ConsoleManagerInterface
 
         $this->printMessage($helpContent);
     }
-    
+
     /**
      * Create new file.
-     * 
+     *
      * @param string $path
      * @param string $name
      * @param string $content
@@ -368,11 +370,11 @@ class ConsoleManager implements ConsoleManagerInterface
      * @return void
      */
     private function createFile(
-        $path, 
-        $name, 
+        $path,
+        $name,
         $content,
-        $type = '', 
-        $extension = 'php' 
+        $type = '',
+        $extension = 'php'
     ) {
         $file = $path . '/' . $name . '.' . $extension;
 
@@ -396,7 +398,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Create config file.
-     * 
+     *
      * @param string $path
      * @return void
      */
@@ -412,13 +414,13 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Create new migration file.
-     * 
+     *
      * @param string $fileName
      * @return void
      */
     private function createMigrationFile($fileName)
     {
-        $migrationFilesPath = $this->basePath . 
+        $migrationFilesPath = $this->basePath .
             $this->configs['path_to_migrations'];
 
         if (!is_dir($migrationFilesPath)) {
@@ -431,7 +433,7 @@ class ConsoleManager implements ConsoleManagerInterface
         $className = ucfirst($fileName) . $fileType;
 
         switch ($fileName) {
-            case (bool) preg_match('/Create[a-zA-Z]*Table/', $fileName):                
+            case (bool) preg_match('/Create[a-zA-Z]*Table/', $fileName):
                 $tableName = $this->inflector->pluralize(
                     $this->inflector->tableize(
                         preg_replace(
@@ -450,13 +452,13 @@ class ConsoleManager implements ConsoleManagerInterface
 
                 break;
             case (bool) preg_match(
-                    '/AddColumn[a-zA-Z]*To[a-zA-Z]*Table/', 
+                    '/AddColumn[a-zA-Z]*To[a-zA-Z]*Table/',
                     $fileName
                 ):
 
                 // we use this small hack to get the column and table names :)
                 $migrationFileNameParts = explode('To', $fileName);
-                
+
                 $tableName = $this->inflector->pluralize(
                     $this->inflector->tableize(
                         preg_replace(
@@ -485,7 +487,7 @@ class ConsoleManager implements ConsoleManagerInterface
                     file_get_contents(__DIR__ . '/templates/migration.php.dist')
                 );
         }
-        
+
         $this->createFile(
             $migrationFilesPath,
             $className,
@@ -496,13 +498,13 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Create new model file with migration file.
-     * 
+     *
      * @param string $fileName
      * @return void
      */
     private function createModelFile($fileName)
     {
-        $modelsFilesPath = $this->basePath . 
+        $modelsFilesPath = $this->basePath .
             $this->configs['path_to_models'];
 
         if (!is_dir($modelsFilesPath)) {
@@ -531,13 +533,13 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Create new seeder.
-     * 
+     *
      * @param string $fileName
      * @return void
      */
     private function createSeeder($fileName)
     {
-        $seedersFilesPath = $this->basePath . 
+        $seedersFilesPath = $this->basePath .
             $this->configs['path_to_seeders'];
 
         if (!is_dir($seedersFilesPath)) {
@@ -561,7 +563,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Migrate the database.
-     * 
+     *
      * @param string $migrationName
      * @return void
      */
@@ -601,12 +603,12 @@ class ConsoleManager implements ConsoleManagerInterface
             require_once $this->basePath .
                 $this->configs['path_to_migrations'] .
                 "/{$migration}.php";
-            
+
             $migrationClass = new $migration(
                 $this->getDbConnection(),
                 $this->dbConnector->getDatabaseName()
             );
-            
+
             $migrationClass->up();
             $logger->log($migration);
 
@@ -624,7 +626,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Rollback the database.
-     * 
+     *
      * @param string $date
      * @return void
      */
@@ -639,12 +641,12 @@ class ConsoleManager implements ConsoleManagerInterface
             require_once $this->basePath .
                 $this->configs['path_to_migrations'] .
                 "/{$migration}.php";
-            
+
             $migrationClass = new $migration(
                 $this->getDbConnection(),
                 $this->configs['database_connection']['name']
             );
-            
+
             $migrationClass->down();
             $logger->removeLog($migration);
 
@@ -659,7 +661,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Seed the database.
-     * 
+     *
      * @param string $seederName
      * @return void
      */
@@ -672,7 +674,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
         if (!empty($seederName)) {
             $seeders[] = $seederName;
-        } else {            
+        } else {
             $seeders = $this->getFilesNames(
                 $this->basePath . $this->configs['path_to_seeders']
             );
@@ -700,7 +702,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Truncate the database.
-     * 
+     *
      * @return void
      */
     private function truncate()
@@ -720,7 +722,7 @@ class ConsoleManager implements ConsoleManagerInterface
             $tables = $logger->getAllTables(
                 $this->configs['database_connection']['name']
             );
-                        
+
             foreach ($tables as $table) {
                 if ($table == $this->configs['logs_table_name']) {
                     continue;
@@ -740,7 +742,7 @@ class ConsoleManager implements ConsoleManagerInterface
 
     /**
      * Drop all tables in the database.
-     * 
+     *
      * @return void
      */
     private function drop()
@@ -760,7 +762,7 @@ class ConsoleManager implements ConsoleManagerInterface
             $tables = $logger->getAllTables(
                 $this->configs['database_connection']['name']
             );
-                        
+
             foreach ($tables as $table) {
                 $logger->execute("
                     DROP TABLE {$table};
