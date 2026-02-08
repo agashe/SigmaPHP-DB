@@ -421,6 +421,10 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createMigrationFile($fileName)
     {
+        if (empty($fileName)) {
+            throw new InvalidArgumentException("Missing name for migration");
+        }
+
         $migrationFilesPath = $this->basePath .
             $this->configs['path_to_migrations'];
 
@@ -505,6 +509,10 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createModelFile($fileName)
     {
+        if (empty($fileName)) {
+            throw new InvalidArgumentException("Missing name for model");
+        }
+
         $modelsFilesPath = $this->basePath .
             $this->configs['path_to_models'];
 
@@ -540,6 +548,10 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function createSeeder($fileName)
     {
+        if (empty($fileName)) {
+            throw new InvalidArgumentException("Missing name for seeder");
+        }
+
         $seedersFilesPath = $this->basePath .
             $this->configs['path_to_seeders'];
 
