@@ -60,15 +60,15 @@ class Model implements ModelInterface
 
     /**
      * @var bool $fetchTrashed
-     * this flag will allow trashed models to 
-     * be always returned with queries results 
+     * this flag will allow trashed models to
+     * be always returned with queries results
      */
     protected $fetchTrashed;
 
     /**
      * @var bool $fetchOnlyTrashed
      * this flag is temporary to return only soft
-     * deleted models in the query results and 
+     * deleted models in the query results and
      * will be reset after each query
      */
     protected $fetchOnlyTrashed;
@@ -80,7 +80,7 @@ class Model implements ModelInterface
      * be reset after each query
      */
     protected $fetchTrashedWithQuery;
-    
+
     /**
      * @var array $conditions
      * an array by all where conditions implemented
@@ -100,10 +100,10 @@ class Model implements ModelInterface
      * to control using UUID as primary keys in models
      */
     protected $uuid;
-    
+
     /**
      * Model Constructor
-     * 
+     *
      * @param \PDO $dbConnection
      * @param string $dbName
      * @param array $values
@@ -135,7 +135,7 @@ class Model implements ModelInterface
         if (empty($this->primary)) {
             $this->primary = 'id';
         }
-        
+
         // set soft delete field name
         if (empty($this->softDeleteFieldName)) {
             $this->softDeleteFieldName = 'deleted_at';
@@ -145,20 +145,20 @@ class Model implements ModelInterface
         if (empty($this->conditions)) {
             $this->conditions = [];
         }
-        
+
         // set fetch trashed models flag
         if (empty($this->fetchTrashed) && $this->fetchTrashed !== true) {
             $this->fetchTrashed = false;
         }
 
         // set fetch only trashed models with query flag
-        if (empty($this->fetchOnlyTrashed) && 
+        if (empty($this->fetchOnlyTrashed) &&
             $this->fetchOnlyTrashed !== true) {
             $this->fetchOnlyTrashed = false;
         }
 
         // set fetch trashed models with query flag
-        if (empty($this->fetchTrashedWithQuery) && 
+        if (empty($this->fetchTrashedWithQuery) &&
             $this->fetchTrashedWithQuery !== true) {
             $this->fetchTrashedWithQuery = false;
         }
@@ -239,7 +239,7 @@ class Model implements ModelInterface
         $queryBuilder = new QueryBuilder($this->dbConnection);
         return $queryBuilder->table($this->table);
     }
-    
+
     /**
      * Convert array to model instance.
      *
@@ -264,7 +264,7 @@ class Model implements ModelInterface
     {
         return $this->fetchColumn("SELECT UUID()")[0];
     }
-    
+
     /**
      * Check if model is using soft delete.
      *
@@ -276,7 +276,7 @@ class Model implements ModelInterface
             class_uses(get_called_class())
         ));
     }
-        
+
     /**
      * Set a new condition on model's query.
      *
@@ -294,8 +294,8 @@ class Model implements ModelInterface
         $relation = '',
     ) {
         $this->conditions[] = [
-            'field' => $field, 
-            'operator' => $operator, 
+            'field' => $field,
+            'operator' => $operator,
             'value' => $value,
             'type' => (!empty($type)) ? $type : (
                 (empty($this->conditions)) ? 'default' : 'and'
@@ -356,7 +356,7 @@ class Model implements ModelInterface
                 case 'has':
                     if (
                         method_exists(
-                            get_called_class(), 
+                            get_called_class(),
                             $condition['relation']
                         )
                     ) {
@@ -369,10 +369,10 @@ class Model implements ModelInterface
 
                         $query->join(
                             $relation['table'],
-                            $relation['table'] . '.' . 
+                            $relation['table'] . '.' .
                                 $relation['foreign_key'],
                             '=',
-                            $this->getTableName() . '.' . 
+                            $this->getTableName() . '.' .
                                 $relation['local_key'],
                         );
 
@@ -450,8 +450,8 @@ class Model implements ModelInterface
     }
 
     /**
-     * Create model from an array of data. 
-     * This method doesn't only create new instance of the model 
+     * Create model from an array of data.
+     * This method doesn't only create new instance of the model
      * but save it also.
      *
      * @param array $modelData
@@ -468,7 +468,7 @@ class Model implements ModelInterface
     /**
      * Fetch all models.
      *
-     * @return array
+     * @return array<static>
      */
     final public function all()
     {
@@ -492,7 +492,7 @@ class Model implements ModelInterface
     /**
      * Fetch first model.
      *
-     * @return Model|null
+     * @return static|null
      */
     final public function first()
     {
@@ -501,7 +501,7 @@ class Model implements ModelInterface
             ->select([$this->getTableName() . '.*']);
 
         $this->processQueryConditions($query);
-        
+
         $result = $query->get();
 
         if (!empty($result)) {
@@ -535,20 +535,20 @@ class Model implements ModelInterface
      * Find model by primary key.
      *
      * @param mixed $primaryValue
-     * @return Model|null
+     * @return static|null
      */
     final public function find($primaryValue)
     {
         $model = null;
         $query = $this->query()
             ->select([$this->getTableName() . '.*']);
-        
+
         $this->setCondition(
             $this->primary, '=', $primaryValue
         );
-        
+
         $this->processQueryConditions($query);
-        
+
         $result = $query->get();
 
         if (!empty($result)) {
@@ -565,18 +565,18 @@ class Model implements ModelInterface
      *
      * @param string $field
      * @param string $value
-     * @return Model|null
+     * @return static|null
      */
     final public function findBy($field, $value)
     {
         $model = null;
         $query = $this->query()
             ->select([$this->getTableName() . '.*']);
-        
+
         $this->setCondition(
             $field, '=', $value
         );
-        
+
         $this->processQueryConditions($query);
 
         $result = $query->get();
@@ -599,14 +599,14 @@ class Model implements ModelInterface
      * @return object
      */
     final public function where($field, $operator, $value)
-    {        
+    {
         $this->setCondition(
             $field, $operator, $value
         );
-        
+
         return $this;
     }
-    
+
     /**
      * And where query on models.
      *
@@ -620,7 +620,7 @@ class Model implements ModelInterface
         $this->setCondition(
             $field, $operator, $value, 'and'
         );
-        
+
         return $this;
     }
 
@@ -637,7 +637,7 @@ class Model implements ModelInterface
         $this->setCondition(
             $field, $operator, $value, 'or'
         );
-        
+
         return $this;
     }
 
@@ -651,15 +651,15 @@ class Model implements ModelInterface
      * @return object
      */
     final public function whereHas(
-        $relation, 
-        $field = '', 
-        $operator = '', 
+        $relation,
+        $field = '',
+        $operator = '',
         $value = ''
-    ) {        
+    ) {
         $this->setCondition(
             $field, $operator, $value, 'has', $relation
         );
-        
+
         return $this;
     }
 
@@ -692,7 +692,7 @@ class Model implements ModelInterface
             // here we skip this part for UUID PKs , since LAST_INSERT_ID does
             // not work with non-numerical PKs
             if (!$this->uuid) {
-                $this->values[$this->primary] = 
+                $this->values[$this->primary] =
                     $this->getLatestInsertedRowPrimaryKeyValue();
             }
 
@@ -718,7 +718,7 @@ class Model implements ModelInterface
         if ($this->isUsingSoftDelete() && !$forceHardDelete) {
             // we disable the "Undefined method ..." warning , since this method
             // will be defined in the SoftDelete Trait
-            
+
             /** @disregard P1013 */
             $this->trash();
         } else {
@@ -726,7 +726,7 @@ class Model implements ModelInterface
                 $this->table,
                 [$this->primary => $this->values[$this->primary]]
             );
-            
+
             // remove the PK value from the model
             $this->values[$this->primary] = null;
         }
@@ -742,7 +742,7 @@ class Model implements ModelInterface
      * @param Model $model
      * @param string $foreignKey
      * @param string $localKey
-     * @return array
+     * @return array<static>
      */
     final public function hasRelation($model, $foreignKey, $localKey)
     {
@@ -750,7 +750,7 @@ class Model implements ModelInterface
             $this->dbConnection,
             $this->dbName
         );
-        
+
         // save the relation details
         $relationName = debug_backtrace()[1]['function'];
 
