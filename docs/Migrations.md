@@ -82,6 +82,27 @@ php ./vendor/bin/sigma-db migrate
 // run specific migration file
 php ./vendor/bin/sigma-db migrate ProductsTableMigration
 ```
+Another unique feature that SigmaPHP-DB supports is the nested directory migrations , so assume you have the following nested migration files:
+
+```
+parent-dir
+    |
+    -- sub-dir-1
+        |
+        -- sub-dir-2
+            |
+            -- MyMigration.php
+```
+
+Once you run the `migrate` command , SigmaPHP-DB will traverse all sub-directories in the root migrations path , and will automatically run it , so no need to any additional configurations , this will allow you to oraganize your migration files easily.
+
+```
+// MyMigration wil be detected and executed 
+php ./vendor/bin/sigma-db migrate
+
+// run you could point to specific path relative to the root migrations path
+php ./vendor/bin/sigma-db migrate parent-dir/sub-dir-1/sub-dir-2/MyMigration
+```
 
 ## Available Methods 
 

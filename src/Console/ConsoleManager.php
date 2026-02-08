@@ -290,13 +290,12 @@ class ConsoleManager implements ConsoleManagerInterface
 
         $filesNames = [];
 
-        if ($handle = opendir($path)) {
-            while (($file = readdir($handle))) {
-                if (in_array($file, ['.', '..'])) continue;
-                $filesNames[] = str_replace('.php', '', $file);
-            }
+        $di = new \RecursiveDirectoryIterator($path);
 
-            closedir($handle);
+        foreach (new \RecursiveIteratorIterator($di) as $file) {
+            if (strpos($file, '/.') !== false) continue;
+            $file = str_replace($path . '/', '', $file);
+            $filesNames[] = str_replace('.php', '', $file);
         }
 
         return $filesNames;
@@ -572,16 +571,16 @@ class ConsoleManager implements ConsoleManagerInterface
     private function migrate($migrationName = '')
     {
         $migrations = [];
-
-        // remove the file extension ".php" if exists
-        $migrationName = str_replace('.php', '', $migrationName);
+        $pathToMigrations = $this->basePath .
+            $this->configs['path_to_migrations'];
 
         if (!empty($migrationName)) {
+            // remove the file extension ".php" if exists
+            $migrationName = str_replace('.php', '', $migrationName);
+
             $migrations[] = $migrationName;
         } else {
-            $migrations = $this->getFilesNames(
-                $this->basePath . $this->configs['path_to_migrations']
-            );
+            $migrations = $this->getFilesNames($pathToMigrations);
         }
 
         $logger = new Logger(
@@ -602,11 +601,13 @@ class ConsoleManager implements ConsoleManagerInterface
         }
 
         foreach ($migrations as $migration) {
-            require_once $this->basePath .
-                $this->configs['path_to_migrations'] .
-                "/{$migration}.php";
+            require_once $pathToMigrations . "/{$migration}.php";
 
-            $migrationClass = new $migration(
+            // remove the sub folders in the path (if any exists)
+            $parts = explode('/', $migration);
+            $migrationName = $parts[count($parts) - 1];
+
+            $migrationClass = new $migrationName(
                 $this->getDbConnection(),
                 $this->dbConnector->getDatabaseName()
             );
@@ -634,17 +635,22 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function rollback($date = '')
     {
+        $pathToMigrations = $this->basePath .
+            $this->configs['path_to_migrations'];
+
         $logger = new Logger(
             $this->getDbConnection(),
             $this->configs['logs_table_name']
         );
 
         foreach ($logger->canBeRolledBack($date) as $migration) {
-            require_once $this->basePath .
-                $this->configs['path_to_migrations'] .
-                "/{$migration}.php";
+            require_once $pathToMigrations . "/{$migration}.php";
 
-            $migrationClass = new $migration(
+            // remove the sub folders in the path (if any exists)
+            $parts = explode('/', $migration);
+            $migrationName = $parts[count($parts) - 1];
+
+            $migrationClass = new $migrationName(
                 $this->getDbConnection(),
                 $this->configs['database_connection']['name']
             );
@@ -670,24 +676,25 @@ class ConsoleManager implements ConsoleManagerInterface
     private function seed($seederName = '')
     {
         $seeders = [];
-
-        // remove the file extension ".php" if exists
-        $seederName = str_replace('.php', '', $seederName);
+        $pathToSeeders = $this->basePath . $this->configs['path_to_seeders'];
 
         if (!empty($seederName)) {
+            // remove the file extension ".php" if exists
+            $seederName = str_replace('.php', '', $seederName);
+
             $seeders[] = $seederName;
         } else {
-            $seeders = $this->getFilesNames(
-                $this->basePath . $this->configs['path_to_seeders']
-            );
+            $seeders = $this->getFilesNames($pathToSeeders);
         }
 
         foreach ($seeders as $seeder) {
-            require_once $this->basePath .
-                $this->configs['path_to_seeders'] .
-                "/{$seeder}.php";
+            require_once $pathToSeeders . "/{$seeder}.php";
 
-            $seed = new $seeder(
+            // remove the sub folders in the path (if any exists)
+            $parts = explode('/', $seeder);
+            $seederName = $parts[count($parts) - 1];
+
+            $seed = new $seederName(
                 $this->getDbConnection()
             );
 
@@ -697,6 +704,8 @@ class ConsoleManager implements ConsoleManagerInterface
                 "{$seeder} was run successfully.",
                 "success"
             );
+
+            unset($seeder);
         }
 
         $this->printMessage("All seeders ran successfully.", "success");
