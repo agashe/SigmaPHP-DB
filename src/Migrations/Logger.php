@@ -11,7 +11,7 @@ use SigmaPHP\DB\Traits\DbOperations;
 class Logger implements LoggerInterface
 {
     use DbOperations;
-    
+
     /**
      * @var \PDO $dbConnection
      */
@@ -21,10 +21,10 @@ class Logger implements LoggerInterface
      * @var string $logsTable
      */
     private $logsTable;
-    
+
     /**
      * Logger Constructor
-     * 
+     *
      * @param \PDO $dbConnection
      * @param string $logsTable
      */
@@ -37,7 +37,7 @@ class Logger implements LoggerInterface
 
     /**
      * Create migrations logs table if doesn't exists.
-     * 
+     *
      * @return void
      */
     private function createLogsTable()
@@ -46,14 +46,14 @@ class Logger implements LoggerInterface
             CREATE TABLE IF NOT EXISTS {$this->logsTable} (
                 id INT(11) AUTO_INCREMENT PRIMARY KEY,
                 migration VARCHAR(255) NOT NULL,
-                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
             );
         ");
     }
 
     /**
      * Log the latest migration status.
-     * 
+     *
      * @param $string $migration the migration file name
      * @return void
      */
@@ -66,7 +66,7 @@ class Logger implements LoggerInterface
 
     /**
      * Get all migrations files that can be migrated.
-     * 
+     *
      * @param array $migrations
      * @return array
      */
@@ -81,10 +81,10 @@ class Logger implements LoggerInterface
             $allLoggedMigrations,
         );
     }
-    
+
     /**
      * Get all migrations that can be rolled back.
-     * 
+     *
      * @param string $date
      * @return array
      */
@@ -99,7 +99,7 @@ class Logger implements LoggerInterface
                 FROM
                     {$this->logsTable}
                 GROUP BY
-                    DATE(executed_at) 
+                    DATE(executed_at)
                 ORDER BY
                     DATE(executed_at) DESC
                 LIMIT 1
@@ -110,7 +110,7 @@ class Logger implements LoggerInterface
 
         return $this->fetchColumn("
             SELECT
-                migration 
+                migration
             FROM
                 {$this->logsTable}
             WHERE DATE(executed_at) {$dateExpression};
@@ -119,7 +119,7 @@ class Logger implements LoggerInterface
 
     /**
      * Remove the log for a migration.
-     * 
+     *
      * @param string $migration the migration file name
      * @return void
      */

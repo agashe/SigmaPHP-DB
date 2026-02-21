@@ -224,7 +224,7 @@ And you can find all available fields options in the table below:
             <td>Date and Time</td>
             <td>
                 Set the default value for date and time fields equals to
-                CURRENT_TIMESTAMP , and also on update it will set the field's value to CURRENT_TIMESTAMP , this useful when you want to implement `updated_at` field
+                CURRENT_TIMESTAMP() , and also on update it will set the field's value to CURRENT_TIMESTAMP() , this useful when you want to implement `updated_at` field
             </td>
         </tr>
     </tbody>

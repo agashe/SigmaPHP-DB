@@ -84,6 +84,8 @@ class HelperMethodsTest extends DbTestCase
             $this->testTrait->addQuotes('count(*)'));
         $this->assertEquals('Date("2023-3-3")',
             $this->testTrait->addQuotes('Date("2023-3-3")'));
+        $this->assertEquals('CURRENT_TIMESTAMP()',
+            $this->testTrait->addQuotes('CURRENT_TIMESTAMP()'));
     }
 
     /**
@@ -96,19 +98,6 @@ class HelperMethodsTest extends DbTestCase
     {
         $this->assertEquals("'(Hello)'",
             $this->testTrait->addQuotes('(Hello)'));
-    }
-
-    /**
-     * Test no quotes are added to SQL constants.
-     *
-     * @runInSeparateProcess
-     * @return void
-     */
-    public function testNoQuotesAreAddedToSqlConstants()
-    {
-        $this->assertEquals('CURRENT_TIMESTAMP',
-            $this->testTrait->addQuotes('CURRENT_TIMESTAMP')
-        );
     }
 
     /**

@@ -23,7 +23,7 @@ class Migration implements MigrationInterface
      * @var string default field name for created at timestamps
      */
     protected const DEFAULT_TIMESTAMPS_CREATED_AT_FIELD_NAME = 'created_at';
-    
+
     /**
      * @var string default field name for updated at timestamps
      */
@@ -41,7 +41,7 @@ class Migration implements MigrationInterface
 
     /**
      * Migration Constructor
-     * 
+     *
      * @param \PDO $dbConnection
      * @param string $dbName
      */
@@ -65,7 +65,7 @@ class Migration implements MigrationInterface
                 "Error : Field name can't be empty"
             );
         }
-        
+
         if (!isset($properties['type']) || empty($properties['type'])) {
             throw new InvalidArgumentException(
                 "Error : Field type can't be empty"
@@ -75,9 +75,9 @@ class Migration implements MigrationInterface
         if (in_array(strtolower($properties['type']), [
             'enum',
             'set'
-            ]) && 
+            ]) &&
             (
-                !isset($properties['values']) || 
+                !isset($properties['values']) ||
                 empty($properties['values']) ||
                 !is_array($properties['values'])
             )
@@ -94,9 +94,9 @@ class Migration implements MigrationInterface
                 'binary',
                 'varbinary',
                 'blob'
-            ]) && 
+            ]) &&
             (
-                !isset($properties['size']) || 
+                !isset($properties['size']) ||
                 empty($properties['size']) ||
                 !is_numeric($properties['size'])
             )
@@ -123,25 +123,25 @@ class Migration implements MigrationInterface
         }
 
         // numeric data types options
-        if (isset($properties['precision']) && 
+        if (isset($properties['precision']) &&
             !empty($properties['precision']) &&
-            isset($properties['scale']) && 
+            isset($properties['scale']) &&
             !empty($properties['scale'])
         ) {
             $fieldString .= "({$properties['precision']},
                 {$properties['scale']}) ";
         }
 
-        if (isset($properties['unsigned']) && 
+        if (isset($properties['unsigned']) &&
             ($properties['unsigned'] === true)) {
             $fieldString .= " UNSIGNED ";
         }
 
         // date data types options
-        if (isset($properties['auto_update']) && 
+        if (isset($properties['auto_update']) &&
             ($properties['auto_update'] === true)) {
             $fieldString .=
-                " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP ";
+                " DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP() ";
         }
 
         // enum and set data types options
@@ -149,16 +149,16 @@ class Migration implements MigrationInterface
             $values = $this->concatenateTokens($properties['values'], true);
             $fieldString .= "({$values}) ";
         }
-        
-        // general field options (for all data types)        
-        if (isset($properties['primary']) && 
+
+        // general field options (for all data types)
+        if (isset($properties['primary']) &&
             ($properties['primary'] === true) &&
             (strtoupper($properties['type']) != 'UUID')
         ) {
             $fieldString .= " AUTO_INCREMENT ";
         }
 
-        if (isset($properties['not_null']) && 
+        if (isset($properties['not_null']) &&
             ($properties['not_null'] === true)) {
             $fieldString .= " NOT NULL ";
         }
@@ -181,33 +181,33 @@ class Migration implements MigrationInterface
             $fieldString .= " DEFAULT (UUID()) ";
         }
 
-        // end the field SQL statement 
+        // end the field SQL statement
         return $fieldString;
     }
 
     /**
-     * The migration's instructions , this method will be called by the 
+     * The migration's instructions , this method will be called by the
      * 'migrate' command in the CLI tool. Also This method will be overridden
      * by children classes (migrations).
-     * 
+     *
      * @return void
      */
     public function up(){}
 
     /**
-     * The opposite of up() method and it reverses the specified migration 
-     * changes , and rollback the database to an older status. 
-     * 
+     * The opposite of up() method and it reverses the specified migration
+     * changes , and rollback the database to an older status.
+     *
      * This method will be overridden by children classes (migrations). And
      * will be called by the 'rollback' command in the CLI tool.
-     * 
+     *
      * @return void
      */
     public function down(){}
 
     /**
      * Create new table schema.
-     * 
+     *
      * @param string $name
      * @param array $fields
      * @param array $options
@@ -218,29 +218,29 @@ class Migration implements MigrationInterface
         // start create table statement
         $createTableStatement = "CREATE TABLE $name";
 
-        // add fields        
+        // add fields
         $tableFields = '';
         $primaryKey  = '';
-        
+
         foreach ($fields as $field) {
             // set the structure for custom field data types
             // or create regular types
             if ((isset($field['name'])) && ($field['name'] == 'soft_delete')) {
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => self::DEFAULT_SOFT_DELETE_FIELD_NAME, 
+                    'name' => self::DEFAULT_SOFT_DELETE_FIELD_NAME,
                     'type' => 'timestamp'
                 ]) . ',';
             }
-            else if ((isset($field['name'])) && 
+            else if ((isset($field['name'])) &&
                 ($field['name'] == 'timestamps')) {
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => self::DEFAULT_TIMESTAMPS_CREATED_AT_FIELD_NAME, 
+                    'name' => self::DEFAULT_TIMESTAMPS_CREATED_AT_FIELD_NAME,
                     'type' => 'timestamp',
-                    'default' => 'CURRENT_TIMESTAMP'
+                    'default' => 'CURRENT_TIMESTAMP()'
                 ]) . ',';
 
                 $tableFields .= $this->convertFieldToSql([
-                    'name' => self::DEFAULT_TIMESTAMPS_UPDATED_AT_FIELD_NAME, 
+                    'name' => self::DEFAULT_TIMESTAMPS_UPDATED_AT_FIELD_NAME,
                     'type' => 'timestamp',
                     'auto_update' => true
                 ]) . ',';
@@ -251,13 +251,13 @@ class Migration implements MigrationInterface
             // if the primary property was set true for the field
             // or it's of the type UUID , set the field as primary key
             if ((isset($field['primary']) && ($field['primary'] === true)) ||
-                (isset($field['type']) && 
-                (strtolower($field['type']) == 'uuid'))    
+                (isset($field['type']) &&
+                (strtolower($field['type']) == 'uuid'))
             ) {
                 $primaryKey = $field['name'];
             }
         }
-        
+
         // set primary key
         if (!empty($primaryKey)) {
             $tableFields .= " PRIMARY KEY ({$primaryKey}),";
@@ -265,19 +265,19 @@ class Migration implements MigrationInterface
 
         // remove trailing comma
         $tableFields = rtrim($tableFields, ',');
-        
+
         $createTableStatement .= " ($tableFields) ";
-        
+
         // add options
         if (isset($options['engine']) && !empty($options['engine'])) {
             $createTableStatement .= " ENGINE = {$options['engine']} ";
         }
-        
+
         if (isset($options['collation']) && !empty($options['collation'])) {
             $createTableStatement .=
                 " COLLATE = ({$options['collation']}) ";
         }
-        
+
         if (isset($options['row_format']) && !empty($options['row_format'])) {
             $createTableStatement .=
                 " ROW_FORMAT = ({$options['row_format']}) ";
@@ -293,10 +293,10 @@ class Migration implements MigrationInterface
         // run create table statement
         $this->execute($createTableStatement);
     }
-    
+
     /**
      * Update table schema.
-     * 
+     *
      * @param string $name
      * @param array $options
      * @return void
@@ -305,17 +305,17 @@ class Migration implements MigrationInterface
     {
         // start update table statement
         $updateTableStatement = "ALTER TABLE $name";
-        
+
         // add options
         if (isset($options['engine']) && !empty($options['engine'])) {
             $updateTableStatement .= " ENGINE = {$options['engine']} ";
         }
-        
+
         if (isset($options['collation']) && !empty($options['collation'])) {
             $updateTableStatement .=
                 " COLLATE = ({$options['collation']}) ";
         }
-        
+
         if (isset($options['row_format']) && !empty($options['row_format'])) {
             $updateTableStatement .=
                 " ROW_FORMAT = ({$options['row_format']}) ";
@@ -334,7 +334,7 @@ class Migration implements MigrationInterface
 
     /**
      * Rename table schema.
-     * 
+     *
      * @param string $currentName
      * @param string $newName
      * @return void
@@ -371,7 +371,7 @@ class Migration implements MigrationInterface
         $newPrimaryKey
     ) {
         $this->execute("
-            ALTER TABLE $table DROP PRIMARY KEY, 
+            ALTER TABLE $table DROP PRIMARY KEY,
             CHANGE $oldPrimaryKey $oldPrimaryKey VARCHAR (255),
             ADD PRIMARY KEY ($newPrimaryKey);
         ");
@@ -379,7 +379,7 @@ class Migration implements MigrationInterface
 
     /**
      * Drop table schema.
-     * 
+     *
      * @param string $name
      * @return void
      */
@@ -390,7 +390,7 @@ class Migration implements MigrationInterface
 
     /**
      * Add column.
-     * 
+     *
      * @param string $table
      * @param string $name
      * @param array $properties
@@ -407,7 +407,7 @@ class Migration implements MigrationInterface
 
     /**
      * Update column.
-     * 
+     *
      * @param string $table
      * @param string $name
      * @param array $properties
@@ -424,7 +424,7 @@ class Migration implements MigrationInterface
 
     /**
      * Rename column.
-     * 
+     *
      * @param string $table
      * @param string $currentName
      * @param string $newName
@@ -449,9 +449,9 @@ class Migration implements MigrationInterface
         return (bool) $this->fetch("
             SELECT
                 COLUMN_NAME
-            FROM 
+            FROM
                 INFORMATION_SCHEMA.COLUMNS
-            WHERE 
+            WHERE
                 TABLE_SCHEMA = '{$this->dbName}'
             AND
                 TABLE_NAME = '{$table}'
@@ -462,7 +462,7 @@ class Migration implements MigrationInterface
 
     /**
      * Drop column.
-     * 
+     *
      * @param string $table
      * @param string $name
      * @return void
@@ -474,7 +474,7 @@ class Migration implements MigrationInterface
 
     /**
      * Add index.
-     * 
+     *
      * @param string $table
      * @param string $name
      * @param array $columns
@@ -513,10 +513,10 @@ class Migration implements MigrationInterface
             CREATE $type INDEX $name ON $table ($columnsFormatted);
         ");
     }
-    
+
     /**
      * Check if index exists.
-     * 
+     *
      * @param string $table
      * @param string $name
      * @return bool
@@ -530,7 +530,7 @@ class Migration implements MigrationInterface
 
     /**
      * Drop index.
-     * 
+     *
      * @param string $table
      * @param string $name
      * @return void
@@ -544,7 +544,7 @@ class Migration implements MigrationInterface
 
     /**
      * Add foreign key.
-     * 
+     *
      * @param string $constraint
      * @param string $parentTable
      * @param array $localIds
@@ -558,7 +558,7 @@ class Migration implements MigrationInterface
         $parentTable,
         $localIds,
         $referenceTable,
-        $foreignIds,    
+        $foreignIds,
         $options
     ) {
         // prepare options
@@ -571,11 +571,11 @@ class Migration implements MigrationInterface
         if (isset($options['on_update']) && !empty($options['on_update'])) {
             $foreignKeyOptions .= " ON UPDATE {$options['on_update']} ";
         }
-        
+
         $this->execute("
-            ALTER TABLE $parentTable 
+            ALTER TABLE $parentTable
             ADD CONSTRAINT $constraint
-            FOREIGN KEY ($localIds) 
+            FOREIGN KEY ($localIds)
             REFERENCES {$referenceTable}($foreignIds)
             {$foreignKeyOptions}
         ");
@@ -583,7 +583,7 @@ class Migration implements MigrationInterface
 
     /**
      * Check if foreign key exists.
-     * 
+     *
      * @param string $table
      * @param string $constraint
      * @return bool
@@ -593,9 +593,9 @@ class Migration implements MigrationInterface
         return (bool) $this->fetch("
             SELECT
                 CONSTRAINT_NAME
-            FROM 
+            FROM
                 INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS
-            WHERE 
+            WHERE
                 TABLE_NAME = '{$table}'
             AND
                 CONSTRAINT_NAME = '{$constraint}';
@@ -604,7 +604,7 @@ class Migration implements MigrationInterface
 
     /**
      * Drop foreign key.
-     * 
+     *
      * @param string $table
      * @param string $constraint
      * @return void
