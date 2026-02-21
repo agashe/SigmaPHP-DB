@@ -8,8 +8,8 @@ namespace SigmaPHP\DB\Traits;
 trait HelperMethods
 {
     /**
-     * Add quotes for string values. 
-     * 
+     * Add quotes for string values.
+     *
      * @param string $value
      * @return string
      */
@@ -17,15 +17,15 @@ trait HelperMethods
     {
         // exclude the null / numeric / SQL functions and constants
         return !empty($value) && (
-            (strpos($value, '(') !== false) || 
-            (strtoupper($value) == 'CURRENT_TIMESTAMP') || 
+            (preg_match('/[a-zA-Z0-9].\(/', $value) !== 0) ||
+            (strtoupper($value) == 'CURRENT_TIMESTAMP') ||
             strtolower($value) == 'null' ||
             is_numeric($value)) ? $value : "'$value'";
     }
 
     /**
      * Concatenate array of tokens into one comma separated line.
-     * 
+     *
      * @param array $tokens
      * @param bool $addQuotes
      * @return string

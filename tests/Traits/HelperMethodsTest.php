@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 use SigmaPHP\DB\Tests\TestCases\DbTestCase;
 use SigmaPHP\DB\Traits\HelperMethods;
@@ -12,7 +12,7 @@ class HelperMethodsTest extends DbTestCase
      * @var object $testTrait
      */
     private $testTrait;
-    
+
     /**
      * HelperMethodsTest SetUp
      *
@@ -26,7 +26,7 @@ class HelperMethodsTest extends DbTestCase
         // implements HelperMethods Trait
         $this->testTrait = $this->createTestObject();
     }
-    
+
     /**
      * Create new instance from test class.
      *
@@ -38,7 +38,7 @@ class HelperMethodsTest extends DbTestCase
             use HelperMethods;
 
             private $dbConnection;
-            
+
             public function __construct($dbConnection)
             {
                 $this->dbConnection = $dbConnection;
@@ -56,7 +56,7 @@ class HelperMethodsTest extends DbTestCase
     {
         $this->assertEquals("'test'", $this->testTrait->addQuotes('test'));
     }
-    
+
     /**
      * Test no quotes are added to numeric values.
      *
@@ -76,16 +76,28 @@ class HelperMethodsTest extends DbTestCase
      */
     public function testNoQuotesAreAddedToSqlFunctions()
     {
-        $this->assertEquals('CONCAT(....)', 
+        $this->assertEquals('CONCAT(....)',
             $this->testTrait->addQuotes('CONCAT(....)'));
-        $this->assertEquals('TRIM(....)', 
+        $this->assertEquals('TRIM(....)',
             $this->testTrait->addQuotes('TRIM(....)'));
-        $this->assertEquals('count(*)', 
+        $this->assertEquals('count(*)',
             $this->testTrait->addQuotes('count(*)'));
-        $this->assertEquals('Date("2023-3-3")', 
+        $this->assertEquals('Date("2023-3-3")',
             $this->testTrait->addQuotes('Date("2023-3-3")'));
     }
-    
+
+    /**
+     * Test quotes are added to text within parentheses.
+     *
+     * @runInSeparateProcess
+     * @return void
+     */
+    public function testQuotesAreAddedToTextWithinParentheses()
+    {
+        $this->assertEquals("'(Hello)'",
+            $this->testTrait->addQuotes('(Hello)'));
+    }
+
     /**
      * Test no quotes are added to SQL constants.
      *
@@ -94,11 +106,11 @@ class HelperMethodsTest extends DbTestCase
      */
     public function testNoQuotesAreAddedToSqlConstants()
     {
-        $this->assertEquals('CURRENT_TIMESTAMP', 
+        $this->assertEquals('CURRENT_TIMESTAMP',
             $this->testTrait->addQuotes('CURRENT_TIMESTAMP')
         );
     }
-    
+
     /**
      * Test no quotes are added to null value.
      *
@@ -107,13 +119,13 @@ class HelperMethodsTest extends DbTestCase
      */
     public function testNoQuotesAreAddedToNullValue()
     {
-        $this->assertEquals('Null', 
+        $this->assertEquals('Null',
             $this->testTrait->addQuotes('Null'));
-        $this->assertEquals('null', 
+        $this->assertEquals('null',
             $this->testTrait->addQuotes('null'));
-        $this->assertEquals('NULL', 
+        $this->assertEquals('NULL',
             $this->testTrait->addQuotes('NULL'));
-        $this->assertEquals('NuLl', 
+        $this->assertEquals('NuLl',
             $this->testTrait->addQuotes('NuLl'));
     }
 
@@ -144,7 +156,7 @@ class HelperMethodsTest extends DbTestCase
         $this->assertEquals(
             "12,'test',NUll",
             $this->testTrait->concatenateTokens(
-                ['12', 'test', 'NUll'], 
+                ['12', 'test', 'NUll'],
                 true
             )
         );
