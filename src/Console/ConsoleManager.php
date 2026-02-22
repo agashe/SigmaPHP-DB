@@ -435,7 +435,13 @@ class ConsoleManager implements ConsoleManagerInterface
         $template = '';
         $tableName = '';
         $fileType = 'Migration';
-        $className = ucfirst($fileName) . $fileType;
+        $className = ucfirst($fileName);
+
+        // add 'Migration' automatically if the name doesn't have it
+        // and if does , then ignore
+        if (stripos($fileName, 'Migration') === false) {
+            $className .= $fileType;
+        }
 
         switch ($fileName) {
             case (bool) preg_match('/Create[a-zA-Z]*Table/', $fileName):
@@ -560,7 +566,13 @@ class ConsoleManager implements ConsoleManagerInterface
         }
 
         $fileType = 'Seeder';
-        $className = ucfirst($fileName) . $fileType;
+        $className = ucfirst($fileName);
+
+        // add 'Seeder' automatically if the name doesn't have it
+        // and if does , then ignore
+        if (stripos($fileName, 'Seeder') === false) {
+            $className .= $fileType;
+        }
 
         $this->createFile(
             $seedersFilesPath,
