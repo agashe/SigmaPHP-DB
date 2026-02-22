@@ -7,7 +7,7 @@ use SigmaPHP\DB\Seeders\Seeder;
  * Seeder Test
  */
 class SeederTest extends DbTestCase
-{    
+{
     /**
      * @var Seeder $seeder
      */
@@ -38,23 +38,26 @@ class SeederTest extends DbTestCase
      */
     public function testSeederCanUseQueryBuilder()
     {
-        $addTestData = $this->connectToDatabase()->prepare("
+        $addTestData = $this->connectToDatabase()->prepare(<<<TEXT
             INSERT INTO test
                 (name, email)
             VALUES
-                ('user1', 'email1'),
-                ('user2', 'email2'),
-                ('user3', 'email3');
-        ");
+                ('<p>Something complex</p>',
+                '<div style="border:2px solid #ffa500;">'),
+                ('([{email2}])', '<div style="font-size:22px;">↓</div>'),
+                ('!@#$%^&*('
+                , '<small>(Database / Calling APIs)</small>
+                ');
+        TEXT);
 
         $addTestData->execute();
 
         $this->assertEquals(
-            'email2',
+            '<div style="border:2px solid #ffa500;">',
             $this->seeder
                 ->query()
                 ->table('test')
-                ->where('name', '=', 'user2')
+                ->where('name', '=', '<p>Something complex</p>')
                 ->get()['email']
         );
     }

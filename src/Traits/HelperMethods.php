@@ -17,9 +17,10 @@ trait HelperMethods
     {
         // exclude the null / numeric / SQL functions
         return !empty($value) && (
-            (preg_match('/[a-zA-Z0-9].\(/', $value) !== 0) ||
+            (preg_match('/[a-zA-Z]+\(/', $value) !== 0) ||
+            (strtoupper($value) == 'CURRENT_TIMESTAMP') ||
             strtolower($value) == 'null' ||
-            is_numeric($value)) ? $value : "'$value'";
+            is_numeric($value)) ? $value : "'" . addslashes($value ?? '') . "'";
     }
 
     /**
