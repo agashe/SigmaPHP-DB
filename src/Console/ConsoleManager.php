@@ -425,7 +425,7 @@ class ConsoleManager implements ConsoleManagerInterface
             throw new InvalidArgumentException("Missing name for migration");
         }
 
-        $migrationFilesPath = $this->basePath .
+        $migrationFilesPath = $this->basePath . '/' .
             $this->configs['path_to_migrations'];
 
         if (!is_dir($migrationFilesPath)) {
@@ -519,7 +519,7 @@ class ConsoleManager implements ConsoleManagerInterface
             throw new InvalidArgumentException("Missing name for model");
         }
 
-        $modelsFilesPath = $this->basePath .
+        $modelsFilesPath = $this->basePath . '/' .
             $this->configs['path_to_models'];
 
         if (!is_dir($modelsFilesPath)) {
@@ -558,7 +558,7 @@ class ConsoleManager implements ConsoleManagerInterface
             throw new InvalidArgumentException("Missing name for seeder");
         }
 
-        $seedersFilesPath = $this->basePath .
+        $seedersFilesPath = $this->basePath . '/' .
             $this->configs['path_to_seeders'];
 
         if (!is_dir($seedersFilesPath)) {
@@ -595,7 +595,7 @@ class ConsoleManager implements ConsoleManagerInterface
     private function migrate($migrationName = '')
     {
         $migrations = [];
-        $pathToMigrations = $this->basePath .
+        $pathToMigrations = $this->basePath . '/' .
             $this->configs['path_to_migrations'];
 
         if (!empty($migrationName)) {
@@ -659,7 +659,7 @@ class ConsoleManager implements ConsoleManagerInterface
      */
     private function rollback($date = '')
     {
-        $pathToMigrations = $this->basePath .
+        $pathToMigrations = $this->basePath . '/' .
             $this->configs['path_to_migrations'];
 
         $logger = new Logger(
@@ -700,7 +700,8 @@ class ConsoleManager implements ConsoleManagerInterface
     private function seed($seederName = '')
     {
         $seeders = [];
-        $pathToSeeders = $this->basePath . $this->configs['path_to_seeders'];
+        $pathToSeeders = $this->basePath . '/' .
+            $this->configs['path_to_seeders'];
 
         if (!empty($seederName)) {
             // remove the file extension ".php" if exists
