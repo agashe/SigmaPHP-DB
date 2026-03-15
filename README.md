@@ -134,7 +134,7 @@ php ./vendor/bin/sigma-db create:migration UsersTable
 php ./vendor/bin/sigma-db create:seed UsersRolesSeeder
 // run seeder UsersRolesSeeder.php
 
-php ./vendor/bin/sigma-db create:rollback 2023-1-20
+php ./vendor/bin/sigma-db rollback 2023-1-20
 // rollback all migrations up to 2023-1-20 , the migrations running dates all saved into the migrations logs table (default name is db_logs). And of course you can change it in the config file
 
 php ./vendor/bin/sigma-db drop
