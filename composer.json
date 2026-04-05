@@ -1,5 +1,5 @@
 {
-    "name": "agashe/sigmaphp-db",
+    "name": "sigmaphp/sigmaphp-db",
     "description": "PHP Database Tools",
 	"keywords": ["SigmaPHP", "framework"],
     "type": "library",
