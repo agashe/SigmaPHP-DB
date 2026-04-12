@@ -5,7 +5,7 @@ query builder , ORM and much more , all these features can be used through an el
 ## Installation
 
 ``` 
-composer require agashe/sigmaphp-db
+composer require sigmaphp/sigmaphp-db
 ```
 
 ## Configurations
